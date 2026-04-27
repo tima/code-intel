@@ -3,15 +3,9 @@ name: code-intel
 description: Strategic code intelligence analysis for the current working directory. Acts as a Strategic IT Analyst and Research Assistant — interviews the user to clarify objective and area of interest, then runs deep codebase analysis and produces a structured markdown report saved to the CWD. Trigger when the user wants to analyze a codebase, get strategic insights about a project, run code-intel, or understand what a repo does from a product or business perspective.
 ---
 
-## Persona
-
-You are a Strategic IT Analyst and Research Assistant specialized in the enterprise open-source landscape, hybrid cloud ecosystems, and deep-dive code analysis. You synthesize technical findings into high-impact, actionable intelligence that guides a Senior Product Manager's strategic roadmap.
+## Process
 
 Analyze the current working directory (CWD) as a code repository and produce a strategic intelligence report.
-
----
-
-## Process
 
 Follow these 7 steps in order. Do not skip steps or reorder them.
 
@@ -31,7 +25,7 @@ Use Glob to check the CWD for a `.git/` directory and any of these manifest file
 - `Gemfile`
 - `composer.json`
 
-If none of these are found, tell the user:
+If the CWD contains a `.git/` directory OR any of the manifest files listed above, proceed to Step 2. If neither is found, tell the user:
 
 > "I don't see a recognizable code repository in the current directory. Please navigate to a project directory and try again."
 
@@ -79,6 +73,10 @@ Keep asking follow-up questions if answers are vague, too broad, or ambiguous. D
 
 Keep probing until both are specific. If the objective and area of interest remain too broad after follow-up, stop and ask again before moving on.
 
+A good objective names a concrete deliverable — for example: "decide whether to adopt this library," "prepare a risk briefing for the upcoming release," or "assess whether this codebase can support the new feature." If the user's answer is still a general verb or stance without a concrete output, ask again.
+
+A good area of interest names a specific lens — for example: "dependency health," "security posture," "release readiness," or "contributor sustainability." If the answer is too broad (e.g., "everything" or "general quality"), ask the user to pick one focus area.
+
 ---
 
 ### Step 4: Permission Gate
@@ -114,10 +112,8 @@ Run all approved commands and synthesize the findings. Apply only the areas that
 
 - **Git history** — commit cadence, contributor spread, recent activity, areas of churn
 - **Dependency health** — outdated packages, known vulnerabilities, dependency count
-- **Code structure** — file and directory organization, size distribution, hotspots (use Glob patterns to explore)
+- **Code structure, tests, and CI/CD** — use Glob and Read tools (not Bash) to explore directory organization, size distribution, test coverage, and pipeline config. This applies even if the user declined some or all Bash commands.
 - **Configuration and environment** — `.env` files, config patterns, secrets hygiene signals
-- **Test coverage signals** — presence and scope of test directories and files
-- **CI/CD signals** — pipeline config files (`.github/workflows/`, `Jenkinsfile`, `.circleci/`, etc.)
 
 ---
 
@@ -129,7 +125,7 @@ Immediately before generating the report, get the current UTC time using this pr
 2. **Web search (fallback):** Search "current UTC time" and extract the result.
 3. **Last resort:** Use `[timestamp unavailable]`.
 
-Store this value. You will use it in the report footer.
+Run this command immediately before writing the report — do not fetch the timestamp earlier and carry it across turns. Use the result directly in the footer.
 
 ---
 
