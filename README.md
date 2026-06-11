@@ -12,7 +12,7 @@ Reports are written at an 8th grade reading level with brutally honest assessmen
 
 ```bash
 # Clone the repository
-git clone https://github.com/anthropics/code-intel-skill.git
+git clone https://github.com/username/code-intel-skill.git
 
 # Create symlink to Claude Code skills directory
 ln -s /path/to/code-intel-skill ~/.claude/skills/code-intel
