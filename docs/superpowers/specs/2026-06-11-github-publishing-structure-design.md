@@ -185,18 +185,21 @@ Content:
 ## Documentation Quality Standards
 
 ### README.md
+- 8th grade reading level
 - Direct, jargon-free language
 - Installation testable in <2 minutes
 - Clear "what it does" in first paragraph
 - Example output prominently linked
 
 ### docs/design.md
+- 8th grade reading level
 - Remove "superpowers" internal context
 - Focus on architecture and decisions
 - Keep 7-step process documentation
 - Maintain persona/tone/fidelity sections (these define output quality)
 
 ### examples/
+- 8th grade reading level
 - Real reports or sanitized versions of real runs
 - Show variety: different tech stacks, objectives, focus areas
 - Demonstrate report quality and depth
