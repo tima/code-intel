@@ -34,6 +34,23 @@ The skill will:
 
 Reports are saved as `code-intel-<project-name>-<YYYY-MM-DD>.md`.
 
+### Advanced Usage
+
+**Override Anti-Pattern Detection:**
+
+Code-intel includes anti-pattern detection that stops analysis for trivial repositories, emergency decisions, and validation-seeking requests. Override with:
+
+```
+/code-intel --force
+```
+
+**When to use --force:**
+- You genuinely need strategic analysis of a small/trivial repository
+- You understand the time investment despite emergency context
+- You want descriptive analysis despite having a predetermined decision
+
+**Note:** Overridden anti-patterns will be noted as limitations in the generated report.
+
 ## Example Output
 
 See [example Flask library analysis](examples/example-flask-library.md) for a sample report.

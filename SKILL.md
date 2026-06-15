@@ -7,7 +7,101 @@ description: Strategic code intelligence analysis for the current working direct
 
 Analyze the current working directory (CWD) as a code repository and produce a strategic intelligence report.
 
-Follow these 7 steps in order. Do not skip steps or reorder them.
+Follow these steps in order. Do not skip steps or reorder them.
+
+---
+
+### Step 0: Anti-Pattern Detection
+
+**BEFORE proceeding to repository verification, check for anti-patterns that make code-intel inappropriate.**
+
+Code-intel is a strategic analysis tool for substantial codebases (5-15 minute analysis time). It is NOT appropriate for trivial repositories, emergency decisions, or validation-seeking.
+
+**Check for anti-patterns in this order:**
+
+#### 0.1: Emergency Decision
+
+**Detect if user context indicates time pressure:**
+- Keywords: "production down", "outage", "incident", "need decision in [<30 min]", "security breach", "revenue-critical deadline", "urgent"
+- Timeline: Decision needed in less than 30 minutes
+- Context: Active incident or crisis response
+
+**If detected, STOP and present:**
+```
+Emergency detected. Code-intel takes 5-15 minutes minimum (interview + analysis + report generation).
+
+For immediate needs:
+- Quick scan: Read README + recent commits manually
+- Dependency check: Run stack-specific audit tool directly
+- Recent activity: `git log --oneline -20`
+
+Run code-intel AFTER incident resolution for thorough post-incident analysis.
+
+Override? User must pass --force flag to proceed.
+```
+
+#### 0.2: Validation-Seeking
+
+**Detect if user request contains pre-stated conclusion:**
+- Patterns: "I think we should X, can you confirm", "validate", "prove", "management wants us to", "already decided"
+- Keywords: "confirm", "validate", "verify [judgment]", "prove"
+
+**If detected, ASK CLARIFYING QUESTION (do not stop):**
+```
+It sounds like you've already leaned toward [conclusion from user statement]. 
+
+Code-intel works best for open exploration - analyzing what IS, not confirming what you hope to find.
+
+Are you:
+A) Looking for weaknesses/risks you might have missed (critical assessment)?
+B) Genuinely open to a "don't adopt this" conclusion if evidence warrants?
+C) Seeking documentation of existing decision for stakeholders?
+
+If C, I can generate a report, but I'll frame it as descriptive (what the codebase is) rather than prescriptive (whether to adopt it).
+```
+
+Wait for user response. Adjust objective framing based on their choice.
+
+#### 0.3: Trivial Repository (Detect AFTER Step 1 Verify Repo)
+
+**This check happens AFTER Step 1 confirms repository exists.**
+
+After finding `.git/` or manifest files, check for triviality indicators:
+- Run `find . -type f | wc -l` to count files (exclude `.git/` directory if present)
+- Check manifest dependencies count
+- Run `git rev-list --count HEAD` if `.git/` exists
+
+**Trivial repository indicators:**
+- Total files < 10
+- Manifest shows zero dependencies (empty `requirements.txt`, `package.json` with no `dependencies` key, etc.)
+- Git commit count < 5 (if `.git/` exists)
+- Single-file project or simple script collection
+
+**If detected, STOP and present:**
+```
+This appears to be a trivial repository (< 10 files, minimal dependencies, < 5 commits).
+
+Code-intel is designed for substantial codebases where:
+- Architecture decisions exist
+- Dependencies and integrations exist
+- Contributor patterns exist
+- Meaningful structure warrants strategic analysis
+
+For this repository, manual code review is more appropriate than strategic intelligence analysis.
+
+Override? User must pass --force flag to proceed.
+```
+
+**If user provides --force, proceed with caveat:**
+Add to report Executive Summary: `**Analysis Limitations:** This is a trivial repository with minimal structure. Findings are constrained by limited available data.`
+
+---
+
+**Anti-Pattern Override:**
+
+User can override ANY anti-pattern check by passing `--force` flag (implementation-specific - either as argument to skill invocation or by explicitly typing "proceed anyway" after warning).
+
+If user overrides emergency or trivial repository warning, proceed but add limitations note to report.
 
 ---
 
@@ -25,7 +119,13 @@ Check the CWD for a `.git/` directory and any of these manifest files:
 - `Gemfile`
 - `composer.json`
 
-If the CWD contains a `.git/` directory OR any of the manifest files listed above, proceed to Step 2. If neither is found, tell the user:
+If the CWD contains a `.git/` directory OR any of the manifest files listed above, **check for Trivial Repository anti-pattern (see Step 0.3).**
+
+If trivial repository detected and user has not provided `--force`, STOP.
+
+If user provides `--force` or repository is not trivial, proceed to Step 2.
+
+If neither `.git/` nor manifest files are found, tell the user:
 
 > "I don't see a recognizable code repository in the current directory. Please navigate to a project directory and try again."
 
@@ -77,6 +177,69 @@ A good objective names a concrete deliverable — for example: "decide whether t
 
 A good area of interest names a specific lens — for example: "dependency health," "security posture," "release readiness," or "contributor sustainability." If the answer is too broad (e.g., "everything" or "general quality"), ask the user to pick one focus area.
 
+**Context Validation Checklist:**
+
+After the interview, verify you have collected:
+- [ ] Specific objective (concrete deliverable, not vague exploration)
+- [ ] Specific area of interest (focused lens, not "everything")
+- [ ] Understanding of user's role/perspective (adopting, maintaining, inheriting, auditing)
+- [ ] Timeline context (when decision needed, urgency level)
+- [ ] Success criteria (how to know if report was useful)
+
+**Context Scoring:**
+- **5/5 items** = FULL CONFIDENCE, proceed to Step 4
+- **3-4/5 items** = SUFFICIENT but warn user:
+  ```
+  I have [X/5] context items. Missing: [list].
+  
+  I can proceed with caveats noted in the report, or you can provide more context for a more tailored analysis.
+  
+  Proceed? (y/n)
+  ```
+- **0-2/5 items** = INSUFFICIENT, STOP:
+  ```
+  Insufficient context for strategic analysis. Missing:
+  - [Item 1] - [why it matters]
+  - [Item 2] - [why it matters]
+  - [Item 3] - [why it matters]
+  
+  Code-intel requires clear objective and area of interest to produce focused, actionable recommendations.
+  
+  Please provide missing context, or I can:
+  A) Generate a generic overview (not recommended - no tailored recommendations)
+  B) Help you clarify your objective first
+  
+  Which approach?
+  ```
+
+If 0-2 items and user chooses A (generic overview), proceed but report will have no Recommendations section, only Findings.
+
+If user chooses B, continue interview until at least 3/5 items collected.
+
+**Interview Escape Hatch:**
+
+If you have asked clarifying questions MORE THAN 5 TIMES and context score is still below 3/5:
+
+```
+We've gone through [X] rounds of clarification and I still don't have enough context for focused analysis.
+
+This suggests either:
+A) The objective is genuinely unclear (more thinking needed before analysis)
+B) The question is too exploratory for code-intel's strategic analysis approach
+
+I recommend:
+- Take time to clarify your objective independently
+- Run a simpler analysis: `git log`, `npm audit`, README review
+- Come back to code-intel when you have a specific decision or deliverable in mind
+
+Stop code-intel? (y/n)
+```
+
+If user says yes, STOP gracefully.
+If user says no, proceed with whatever context is available and note in report: `**Context Limitations:** Analysis proceeded with incomplete context after extended interview.`
+
+**Only proceed to Step 4 if context score is 3/5 or higher.**
+
 ---
 
 ### Step 4: Permission Gate
@@ -119,13 +282,19 @@ Run all approved commands and synthesize the findings. Apply only the areas that
 
 ### Step 6: Get Timestamp
 
-Immediately before generating the report, get the current UTC time using this priority order:
+Capture the current UTC time ONCE and store it for use in Step 7. This prevents time drift between capture and report writing.
+
+**Timestamp capture priority order:**
 
 1. **Shell command (preferred):** Run `date -u +"%b-%d-%Y %H:%M UTC"`
 2. **Web search (fallback):** Search "current UTC time" and extract the result.
 3. **Last resort:** Use `[timestamp unavailable]`.
 
-Run this command immediately before writing the report — do not fetch the timestamp earlier and carry it across turns. Use the result directly in the footer.
+**Store the result immediately.** Do not re-fetch the timestamp in Step 7. Use the captured value in the report footer.
+
+**Example:**
+- Capture: `Jun-15-2026 18:32 UTC`
+- Use in footer: `Claude Code | Claude Sonnet 4.6 | Jun-15-2026 18:32 UTC`
 
 ---
 
