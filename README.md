@@ -1,6 +1,6 @@
 # code-intel
 
-Strategic code intelligence analysis for Claude Code
+Strategic code intelligence analysis for AI coding assistants with skills support
 
 ## What It Does
 
@@ -14,10 +14,12 @@ Reports are written at an 8th grade reading level with brutally honest assessmen
 # Clone the repository
 git clone https://github.com/username/code-intel-skill.git
 
-# Create symlink to Claude Code skills directory
+# Install to your AI assistant's skills directory
+# Example for Claude Code:
 ln -s /path/to/code-intel-skill ~/.claude/skills/code-intel
 
 # Verify installation
+# Example for Claude Code:
 claude skills list | grep code-intel
 ```
 
@@ -45,7 +47,7 @@ See [example Flask library analysis](examples/example-flask-library.md) for a sa
 
 ## Requirements
 
-- Claude Code
+- AI coding assistant with Agent Skills support
 - Git repository or recognizable project structure (package.json, requirements.txt, go.mod, Cargo.toml, etc.)
 - Optional: Dependency audit tools for your stack (npm audit, pip-audit, cargo audit, etc.)
 
@@ -57,7 +59,8 @@ See [example Flask library analysis](examples/example-flask-library.md) for a sa
 ## Uninstall
 
 ```bash
-# Remove symlink
+# Remove from your skills directory
+# Example for Claude Code:
 rm ~/.claude/skills/code-intel
 
 # Optionally remove cloned repo

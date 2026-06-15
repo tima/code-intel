@@ -141,4 +141,4 @@ Flask's documentation is excellent for users. It is essentially silent on intern
 
 ---
 
-Claude Code | Claude Sonnet 4.6 | Apr-27-2026 00:47 UTC
+[Provider/Tool] | [Model] | [Timestamp]

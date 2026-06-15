@@ -13,7 +13,7 @@ Follow these 7 steps in order. Do not skip steps or reorder them.
 
 ### Step 1: Verify Repo
 
-Use Glob to check the CWD for a `.git/` directory and any of these manifest files:
+Check the CWD for a `.git/` directory and any of these manifest files:
 
 - `package.json`
 - `requirements.txt`
@@ -35,11 +35,11 @@ Then stop. Do not proceed.
 
 ### Step 2: Quick Passive Scan
 
-Use Read and Glob tools only. Do NOT run any Bash commands at this stage.
+Use file reading and pattern matching only. Do NOT run any shell commands at this stage.
 
 1. Read the README file — try `README.md`, then `README`, `README.rst`, `README.txt` in that order. Read whichever one exists.
 2. Read all manifest and dependency files found in Step 1.
-3. List the top-level directory structure using Glob with a `*` pattern.
+3. List the top-level directory structure (equivalent to listing files matching `*`).
 
 From this passive scan, identify:
 
@@ -112,7 +112,7 @@ Run all approved commands and synthesize the findings. Apply only the areas that
 
 - **Git history** — commit cadence, contributor spread, recent activity, areas of churn
 - **Dependency health** — outdated packages, known vulnerabilities, dependency count
-- **Code structure, tests, and CI/CD** — use Glob and Read tools (not Bash) to explore directory organization, size distribution, test coverage, and pipeline config. This applies even if the user declined some or all Bash commands.
+- **Code structure, tests, and CI/CD** — use file reading and pattern matching (not shell commands) to explore directory organization, size distribution, test coverage, and pipeline config. This applies even if the user declined some or all shell commands.
 - **Configuration and environment** — `.env` files, config patterns, secrets hygiene signals
 
 ---
@@ -121,7 +121,7 @@ Run all approved commands and synthesize the findings. Apply only the areas that
 
 Immediately before generating the report, get the current UTC time using this priority order:
 
-1. **Bash (preferred):** Run `date -u +"%b-%d-%Y %H:%M UTC"`
+1. **Shell command (preferred):** Run `date -u +"%b-%d-%Y %H:%M UTC"`
 2. **Web search (fallback):** Search "current UTC time" and extract the result.
 3. **Last resort:** Use `[timestamp unavailable]`.
 
@@ -137,7 +137,7 @@ Generate the full report, then save it to the CWD.
 
 - Derive `<project-name>` from the CWD directory name or the project name in the manifest. Use lowercase with hyphens for spaces. Keep it under 40 characters.
 - `<YYYY-MM-DD>` comes from the timestamp captured in Step 6.
-- Use Glob to check whether that filename already exists. If it does, append `-2`, `-3`, etc. until you find an unused name.
+- Check whether that filename already exists. If it does, append `-2`, `-3`, etc. until you find an unused name.
 
 Before writing: announce `"Saving report to <filename>..."`
 

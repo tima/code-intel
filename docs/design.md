@@ -5,7 +5,7 @@
 
 ## Overview
 
-`code-intel` is a Claude Code skill that acts as a strategic IT Analyst and Research Assistant for codebases. It analyzes the current working directory (a git repo or project with recognizable manifests), interviews the user to clarify their objective and area of interest, runs a deep analysis using available tools, and produces a structured markdown intelligence report saved to the CWD.
+`code-intel` is an Agent Skill that acts as a strategic IT Analyst and Research Assistant for codebases. It analyzes the current working directory (a git repo or project with recognizable manifests), interviews the user to clarify their objective and area of interest, runs a deep analysis using available tools, and produces a structured markdown intelligence report saved to the CWD.
 
 The target audience is a Senior Product Manager who needs high-impact, actionable intelligence — not a developer linting tool.
 
@@ -156,7 +156,7 @@ Direct, constructive criticism based only on available data. Brutally honest. No
 [AI Provider/Tool] | [Model Name] | [Timestamp UTC]
 ```
 
-The footer should reflect the actual AI provider, tool, and model generating the report (e.g., `Claude Code | Claude Sonnet 4.6 | Apr-26-2026 14:32 GMT` or `Gemini CLI | Gemini 2.5 Pro | Apr-26-2026 14:32 GMT`).
+The footer should reflect the actual AI provider, tool, and model generating the report (e.g., `Claude Code | Claude Sonnet 4.6 | Apr-26-2026 14:32 UTC` or `Gemini CLI | Gemini 2.5 Pro | Apr-26-2026 14:32 UTC`).
 
 ---
 
