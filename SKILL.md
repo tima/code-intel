@@ -119,7 +119,35 @@ Check the CWD for a `.git/` directory and any of these manifest files:
 - `Gemfile`
 - `composer.json`
 
-If the CWD contains a `.git/` directory OR any of the manifest files listed above, **check for Trivial Repository anti-pattern (see Step 0.3).**
+If the CWD contains a `.git/` directory OR any of the manifest files listed above, proceed with large repository and trivial checks:
+
+**Large Repository Warning:**
+
+If the CWD appears to be a very large repository, warn before proceeding:
+
+**Large repository indicators:**
+- `.git/` directory size > 1GB (run `du -sh .git` if uncertain)
+- `node_modules/` or `venv/` or `target/` present in CWD (not gitignored)
+- Top-level directory listing shows > 100 files/directories
+
+**If large repository detected:**
+```
+This appears to be a large repository. Code-intel analysis may take longer and could hit filesystem limits.
+
+Recommendations before proceeding:
+- Ensure you're in the project root (not a parent directory containing multiple repos)
+- Run from a subdirectory if analyzing a monorepo sub-project
+- Check that large build artifacts (node_modules/, venv/, target/) are in .gitignore
+
+Continue anyway? (y/n)
+```
+
+If user says no, STOP.
+If user says yes, proceed to trivial repository check.
+
+**Trivial Repository Check:**
+
+After large repository check passes, **check for Trivial Repository anti-pattern (see Step 0.3).**
 
 If trivial repository detected and user has not provided `--force`, STOP.
 
@@ -133,20 +161,46 @@ Then stop. Do not proceed.
 
 ---
 
-### Step 2: Quick Passive Scan
+### Step 2: Expanded Passive Scan
 
 Use file reading and pattern matching only. Do NOT run any shell commands at this stage.
 
+**Infrastructure and Manifests:**
 1. Read the README file — try `README.md`, then `README`, `README.rst`, `README.txt` in that order. Read whichever one exists.
 2. Read all manifest and dependency files found in Step 1.
-3. List the top-level directory structure (equivalent to listing files matching `*`).
+3. List the top-level directory structure (files and directories matching `*` in CWD).
 
-From this passive scan, identify:
+**Test Coverage Signals:**
+4. Check for test directories: `test/`, `tests/`, `spec/`, `__tests__/`, `src/**/test/`
+5. If found, list directory contents to estimate test file count
+6. Check manifest for test frameworks (pytest, jest, mocha, rspec, etc. in devDependencies or test requirements)
+
+**CI/CD Configuration:**
+7. Check for CI/CD configuration files:
+   - `.github/workflows/*.yml` (GitHub Actions)
+   - `.gitlab-ci.yml` (GitLab)
+   - `Jenkinsfile` (Jenkins)
+   - `.circleci/config.yml` (CircleCI)
+   - `.travis.yml` (Travis)
+   - `azure-pipelines.yml` (Azure DevOps)
+8. If found, read one CI config file to identify: test automation, deployment steps, matrix configurations
+
+**Security Indicators:**
+9. Check for security-related files:
+   - `SECURITY.md` (security policy)
+   - `.env.example` (environment variable template - check if `.env` is gitignored)
+   - `dependabot.yml` or `renovate.json` (automated dependency updates)
+10. Check `.gitignore` for secrets hygiene (are `.env`, `*.key`, `*.pem`, credentials patterns ignored?)
+
+**From this expanded passive scan, identify:**
 
 - Primary language(s) and frameworks
 - Project type (library, API service, CLI tool, monorepo, etc.)
 - Key dependencies and integration points
-- Anything notably interesting — for example: Kafka, GraphQL, ML frameworks, multi-service layouts, legacy patterns
+- Test framework and approximate test coverage level (none, minimal, substantial)
+- CI/CD presence and automation level
+- Security practices (dependency updates, secrets hygiene)
+- Anything notably interesting — for example: Kafka, GraphQL, ML frameworks, multi-service layouts, legacy patterns, deprecated dependencies
 
 ---
 
@@ -242,19 +296,45 @@ If user says no, proceed with whatever context is available and note in report: 
 
 ---
 
-### Step 4: Permission Gate
+### Step 4: Permission Gate with Selective Approval
 
-Before running any shell commands, present a list of exactly what you plan to run and ask for permission. Tailor the command list to the detected tech stack. Example:
+Before running any shell commands, present a list of exactly what you plan to run and ask for permission. Tailor the command list to the detected tech stack.
 
-> "To do a thorough analysis, I'd like to run the following:
-> - `git log --oneline -50` — recent commit history
-> - `git shortlog -sn --no-merges` — contributor activity
-> - `git diff HEAD~10..HEAD --stat` — recent change volume
-> - `npm audit --json` — dependency vulnerability check (Node.js)
->
-> OK to proceed?"
+**Present commands with individual approval options:**
 
-Only run commands the user explicitly approves. If the user declines everything, proceed using passive scan data only and note the limitation clearly in the report.
+```
+To do a thorough analysis, I'd like to run the following commands.
+
+Approve all, approve individually, or decline all?
+
+Proposed commands:
+1. `git log --oneline -50` — recent commit history
+2. `git shortlog -sn --no-merges` — contributor activity  
+3. `git diff HEAD~10..HEAD --stat` — recent change volume
+4. `npm audit --json` — dependency vulnerability check (Node.js detected)
+
+Options:
+A) Approve all
+B) Approve individually (I'll ask for each)
+C) Decline all (passive scan only)
+
+Your choice?
+```
+
+**If user chooses A (approve all):** Run all commands.
+
+**If user chooses B (approve individually):** For each command, ask:
+```
+Run `[command]` — [description]? (y/n)
+```
+Run only approved commands.
+
+**If user chooses C (decline all):** Proceed with passive scan data only and note in report:
+```
+**Analysis Limitations:** User declined shell command permissions. Analysis based on passive file scan only (no git history, no dependency audit results).
+```
+
+**Track which commands were approved** for use in report limitations section.
 
 **Stack-specific dependency audit commands — include when relevant:**
 
@@ -358,6 +438,59 @@ The footer must reflect the actual AI provider, tool, and model generating the r
 Examples:
 - `Claude Code | Claude Sonnet 4.6 | Apr-26-2026 14:32 UTC`
 - `Gemini CLI | Gemini 2.5 Pro | Apr-26-2026 14:32 UTC`
+
+---
+
+**Report Quality Validation (Before Writing):**
+
+After generating the report content in memory, validate it meets minimum quality standards:
+
+**Required components (fail-fast if ANY missing):**
+- [ ] Executive Summary: 2-3 sentences (not vague, mentions specific finding)
+- [ ] Tech Stack & Architecture: Lists specific languages, frameworks, versions
+- [ ] Key Findings: At least 3 specific findings (not generalizations like "code is well-structured")
+- [ ] Detailed Analysis: At least 2 subsections with specific data points
+- [ ] Strengths & Weaknesses table: At least 2 items per column, evidence-based
+- [ ] Recommendations section: Title includes user's stated area of interest
+- [ ] Recommendations content: At least 3 specific, actionable recommendations (not "consider improving X")
+- [ ] Footer: Includes provider, model, and captured timestamp
+
+**Quality checks (warn but proceed if failed):**
+- [ ] No weasel words in findings: "likely", "probably", "seems like", "appears to suggest"
+- [ ] Numbers are specific: "139 commits" not "many commits", "6 dependencies" not "several dependencies"
+- [ ] Recommendations address stated objective
+- [ ] Reading level: sentences average < 20 words, no corporate jargon
+
+**If ANY required component is missing:**
+```
+Report quality validation failed. Missing:
+- [Component name]
+
+This indicates insufficient data for a complete strategic intelligence report.
+
+Options:
+A) Abort (recommended - incomplete reports provide false confidence)
+B) Save partial report with prominent disclaimer
+C) Retry analysis with additional data
+
+Your choice?
+```
+
+If user chooses A: STOP, do not write file.
+If user chooses B: Prepend report with:
+```
+**INCOMPLETE ANALYSIS** - This report is missing required components. Use with caution.
+```
+If user chooses C: Return to Step 4 (Permission Gate) and request additional commands.
+
+**If quality checks fail (weasel words, vague numbers):**
+Generate warning but proceed with save:
+```
+Warning: Report contains [X] quality issues:
+- [Issue description]
+
+Proceeding with save, but consider revising for clarity.
+```
 
 ---
 
