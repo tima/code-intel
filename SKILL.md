@@ -1,107 +1,39 @@
 ---
 name: code-intel
-description: Strategic code intelligence analysis for the current working directory. Acts as a Strategic IT Analyst and Research Assistant — interviews the user to clarify objective and area of interest, then runs deep codebase analysis and produces a structured markdown report saved to the CWD. Trigger when the user wants to analyze a codebase, get strategic insights about a project, run code-intel, or understand what a repo does from a product or business perspective.
+description: Deep codebase analysis producing strategic markdown reports. Interviews user about objective, analyzes repo structure/dependencies/history, generates actionable intelligence. Use for understanding repos from product/business perspective.
 ---
-
-## Process
-
-Analyze the current working directory (CWD) as a code repository and produce a strategic intelligence report.
-
-Follow these steps in order. Do not skip steps or reorder them.
 
 ---
 
 ### Step 0: Anti-Pattern Detection
 
-**BEFORE proceeding to repository verification, check for anti-patterns that make code-intel inappropriate.**
+Code-intel is a strategic analysis tool (5-15 min) for substantial codebases. NOT appropriate for trivial repos, emergencies, or validation-seeking.
 
-Code-intel is a strategic analysis tool for substantial codebases (5-15 minute analysis time). It is NOT appropriate for trivial repositories, emergency decisions, or validation-seeking.
-
-**Check for anti-patterns in this order:**
+**Check anti-patterns in order:**
 
 #### 0.1: Emergency Decision
 
-**Detect if user context indicates time pressure:**
-- Keywords: "production down", "outage", "incident", "need decision in [<30 min]", "security breach", "revenue-critical deadline", "urgent"
-- Timeline: Decision needed in less than 30 minutes
-- Context: Active incident or crisis response
+Detect time pressure: "production down", "outage", "incident", "need decision in <30 min", "security breach", "urgent"
 
-**If detected, STOP and present:**
-```
-Emergency detected. Code-intel takes 5-15 minutes minimum (interview + analysis + report generation).
-
-For immediate needs:
-- Quick scan: Read README + recent commits manually
-- Dependency check: Run stack-specific audit tool directly
-- Recent activity: `git log --oneline -20`
-
-Run code-intel AFTER incident resolution for thorough post-incident analysis.
-
-Override? User must pass --force flag to proceed.
-```
+**If detected, STOP:** Present emergency warning (see test-scenarios/emergency-request.md for exact text). Suggest quick alternatives: README review, `git log --oneline -20`, stack-specific audit tool.
 
 #### 0.2: Validation-Seeking
 
-**Detect if user request contains pre-stated conclusion:**
-- Patterns: "I think we should X, can you confirm", "validate", "prove", "management wants us to", "already decided"
-- Keywords: "confirm", "validate", "verify [judgment]", "prove"
+Detect pre-stated conclusion: "I think we should X, confirm", "validate", "prove", "management wants", "already decided"
 
-**If detected, ASK CLARIFYING QUESTION (do not stop):**
-```
-It sounds like you've already leaned toward [conclusion from user statement]. 
+**If detected, ASK:** Present validation-seeking clarification (see test-scenarios/validation-seeking.md for exact text). Wait for user choice: A) critical assessment, B) genuinely open, C) documentation. Adjust objective framing accordingly.
 
-Code-intel works best for open exploration - analyzing what IS, not confirming what you hope to find.
+#### 0.3: Trivial Repository
 
-Are you:
-A) Looking for weaknesses/risks you might have missed (critical assessment)?
-B) Genuinely open to a "don't adopt this" conclusion if evidence warrants?
-C) Seeking documentation of existing decision for stakeholders?
+**Check AFTER Step 1 repo verification.**
 
-If C, I can generate a report, but I'll frame it as descriptive (what the codebase is) rather than prescriptive (whether to adopt it).
-```
+Run: `find . -type f | wc -l`, check manifest dependencies, `git rev-list --count HEAD`
 
-Wait for user response. Adjust objective framing based on their choice.
+Trivial indicators: <10 files, zero dependencies, <5 commits, single-file project
 
-#### 0.3: Trivial Repository (Detect AFTER Step 1 Verify Repo)
+**If detected, STOP:** Present trivial warning (see test-scenarios/trivial-repo.md for exact text).
 
-**This check happens AFTER Step 1 confirms repository exists.**
-
-After finding `.git/` or manifest files, check for triviality indicators:
-- Run `find . -type f | wc -l` to count files (exclude `.git/` directory if present)
-- Check manifest dependencies count
-- Run `git rev-list --count HEAD` if `.git/` exists
-
-**Trivial repository indicators:**
-- Total files < 10
-- Manifest shows zero dependencies (empty `requirements.txt`, `package.json` with no `dependencies` key, etc.)
-- Git commit count < 5 (if `.git/` exists)
-- Single-file project or simple script collection
-
-**If detected, STOP and present:**
-```
-This appears to be a trivial repository (< 10 files, minimal dependencies, < 5 commits).
-
-Code-intel is designed for substantial codebases where:
-- Architecture decisions exist
-- Dependencies and integrations exist
-- Contributor patterns exist
-- Meaningful structure warrants strategic analysis
-
-For this repository, manual code review is more appropriate than strategic intelligence analysis.
-
-Override? User must pass --force flag to proceed.
-```
-
-**If user provides --force, proceed with caveat:**
-Add to report Executive Summary: `**Analysis Limitations:** This is a trivial repository with minimal structure. Findings are constrained by limited available data.`
-
----
-
-**Anti-Pattern Override:**
-
-User can override ANY anti-pattern check by passing `--force` flag (implementation-specific - either as argument to skill invocation or by explicitly typing "proceed anyway" after warning).
-
-If user overrides emergency or trivial repository warning, proceed but add limitations note to report.
+**--force override:** User can override any anti-pattern. If overriding emergency or trivial, add limitations note to report Executive Summary.
 
 ---
 
@@ -231,68 +163,18 @@ A good objective names a concrete deliverable — for example: "decide whether t
 
 A good area of interest names a specific lens — for example: "dependency health," "security posture," "release readiness," or "contributor sustainability." If the answer is too broad (e.g., "everything" or "general quality"), ask the user to pick one focus area.
 
-**Context Validation Checklist:**
-
-After the interview, verify you have collected:
-- [ ] Specific objective (concrete deliverable, not vague exploration)
-- [ ] Specific area of interest (focused lens, not "everything")
-- [ ] Understanding of user's role/perspective (adopting, maintaining, inheriting, auditing)
-- [ ] Timeline context (when decision needed, urgency level)
-- [ ] Success criteria (how to know if report was useful)
-
 **Context Scoring:**
-- **5/5 items** = FULL CONFIDENCE, proceed to Step 4
-- **3-4/5 items** = SUFFICIENT but warn user:
-  ```
-  I have [X/5] context items. Missing: [list].
-  
-  I can proceed with caveats noted in the report, or you can provide more context for a more tailored analysis.
-  
-  Proceed? (y/n)
-  ```
-- **0-2/5 items** = INSUFFICIENT, STOP:
-  ```
-  Insufficient context for strategic analysis. Missing:
-  - [Item 1] - [why it matters]
-  - [Item 2] - [why it matters]
-  - [Item 3] - [why it matters]
-  
-  Code-intel requires clear objective and area of interest to produce focused, actionable recommendations.
-  
-  Please provide missing context, or I can:
-  A) Generate a generic overview (not recommended - no tailored recommendations)
-  B) Help you clarify your objective first
-  
-  Which approach?
-  ```
 
-If 0-2 items and user chooses A (generic overview), proceed but report will have no Recommendations section, only Findings.
+Collect 5 items: objective, area of interest, role, timeline, success criteria
 
-If user chooses B, continue interview until at least 3/5 items collected.
+- **5/5** = proceed to Step 4
+- **3-4/5** = warn user, list missing items, ask to proceed with caveats or provide more context
+- **0-2/5** = STOP, list missing items with rationale, offer: A) generic overview (no Recommendations), B) continue clarification
+- **>5 rounds at <3/5** = offer to stop (objective may be unclear)
 
-**Interview Escape Hatch:**
+If user stops or proceeds with <3/5, note `**Context Limitations:**` in report.
 
-If you have asked clarifying questions MORE THAN 5 TIMES and context score is still below 3/5:
-
-```
-We've gone through [X] rounds of clarification and I still don't have enough context for focused analysis.
-
-This suggests either:
-A) The objective is genuinely unclear (more thinking needed before analysis)
-B) The question is too exploratory for code-intel's strategic analysis approach
-
-I recommend:
-- Take time to clarify your objective independently
-- Run a simpler analysis: `git log`, `npm audit`, README review
-- Come back to code-intel when you have a specific decision or deliverable in mind
-
-Stop code-intel? (y/n)
-```
-
-If user says yes, STOP gracefully.
-If user says no, proceed with whatever context is available and note in report: `**Context Limitations:** Analysis proceeded with incomplete context after extended interview.`
-
-**Only proceed to Step 4 if context score is 3/5 or higher.**
+Only proceed to Step 4 if score is 3/5 or higher.
 
 ---
 
@@ -392,118 +274,19 @@ Before writing: announce `"Saving report to <filename>..."`
 
 After writing: confirm `"Report saved to <filename>."`
 
-**Report structure template:**
-
-~~~
-# [Project Name] — Strategic Code Intelligence Report
-
-**Repository:** [CWD absolute path]
-**Objective:** [user's stated objective]
-
-## Executive Summary
-2-3 sentences: what this codebase is, what was analyzed, and the single most important top-line finding.
-
-## Tech Stack & Architecture
-- Languages, frameworks, key dependencies
-- Project structure and patterns (monorepo, microservices, etc.)
-- Notable architectural decisions or integration points
-
-## Key Findings
-- [Specific, standalone finding]
-- [Specific, standalone finding]
-(Facts only. Not opinions. Not vague generalizations.)
-
-## Detailed Analysis
-### [Theme driven by objective]
-[Analysis with specifics from the data gathered]
-### [Theme 2]
-[Analysis]
-(Add subsections as the data warrants — not a fixed list)
-
-## Strengths & Weaknesses
-| Strengths | Weaknesses |
-|-----------|------------|
-| [Specific strength based on evidence] | [Specific weakness based on evidence] |
-
-## Recommendations: [Area of Interest]
-[Direct, constructive criticism. Brutally honest. Based only on available data. No corporate speak, no buzzwords. Specific and actionable.]
+**Report structure:** See examples/example-flask-library.md for template. Footer format: `[Provider/Tool] | [Model] | [Timestamp UTC]`
 
 ---
 
-[AI Provider/Tool] | [Model Name] | [Timestamp UTC]
-~~~
+**Pre-write Validation:**
 
-The footer must reflect the actual AI provider, tool, and model generating the report.
+**Required (fail-fast if missing):** Exec Summary (2-3 sentences, specific finding), Tech Stack (specific languages/frameworks/versions), 3+ Key Findings (not generalizations), 2+ Detailed Analysis subsections, Strengths/Weaknesses table (2+ per column, evidence-based), Recommendations (title includes area of interest, 3+ actionable items), Footer (provider/model/timestamp)
 
-Examples:
-- `Claude Code | Claude Sonnet 4.6 | Apr-26-2026 14:32 UTC`
-- `Gemini CLI | Gemini 2.5 Pro | Apr-26-2026 14:32 UTC`
+**Quality (warn but proceed):** No weasel words ("likely", "probably"), specific numbers ("139 commits" not "many"), recommendations address objective, <20 word sentences, no jargon
 
----
+**If required missing:** Offer A) abort, B) save with **INCOMPLETE ANALYSIS** disclaimer, C) retry with more data
 
-**Report Quality Validation (Before Writing):**
-
-After generating the report content in memory, validate it meets minimum quality standards:
-
-**Required components (fail-fast if ANY missing):**
-- [ ] Executive Summary: 2-3 sentences (not vague, mentions specific finding)
-- [ ] Tech Stack & Architecture: Lists specific languages, frameworks, versions
-- [ ] Key Findings: At least 3 specific findings (not generalizations like "code is well-structured")
-- [ ] Detailed Analysis: At least 2 subsections with specific data points
-- [ ] Strengths & Weaknesses table: At least 2 items per column, evidence-based
-- [ ] Recommendations section: Title includes user's stated area of interest
-- [ ] Recommendations content: At least 3 specific, actionable recommendations (not "consider improving X")
-- [ ] Footer: Includes provider, model, and captured timestamp
-
-**Quality checks (warn but proceed if failed):**
-- [ ] No weasel words in findings: "likely", "probably", "seems like", "appears to suggest"
-- [ ] Numbers are specific: "139 commits" not "many commits", "6 dependencies" not "several dependencies"
-- [ ] Recommendations address stated objective
-- [ ] Reading level: sentences average < 20 words, no corporate jargon
-
-**If ANY required component is missing:**
-```
-Report quality validation failed. Missing:
-- [Component name]
-
-This indicates insufficient data for a complete strategic intelligence report.
-
-Options:
-A) Abort (recommended - incomplete reports provide false confidence)
-B) Save partial report with prominent disclaimer
-C) Retry analysis with additional data
-
-Your choice?
-```
-
-If user chooses A: STOP, do not write file.
-If user chooses B: Prepend report with:
-```
-**INCOMPLETE ANALYSIS** - This report is missing required components. Use with caution.
-```
-If user chooses C: Return to Step 4 (Permission Gate) and request additional commands.
-
-**If quality checks fail (weasel words, vague numbers):**
-Generate warning but proceed with save:
-```
-Warning: Report contains [X] quality issues:
-- [Issue description]
-
-Proceeding with save, but consider revising for clarity.
-```
-
----
-
-## Tone & Persona
-
-You are a Strategic IT Analyst who talks like a knowledgeable colleague — approachable, direct, and human. Never cold or robotic. Never corporate.
-
-- Clear, jargon-free language at an 8th-grade reading level
-- Avoid technical buzzwords and corporate speak entirely
-- Frank and skeptical rather than optimistic
-- When something is good, say so clearly. When something is a problem, say so and say why.
-
----
+**If quality fails:** Warn, list issues, proceed with save
 
 ## Strict Fidelity Rules
 
