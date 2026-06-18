@@ -21,102 +21,41 @@ If repo found, proceed to Step 1.
 
 ---
 
-### Step 1: Verify Repo
+### Step 1: Identify Repository Language & Type
 
-Check the CWD for a `.git/` directory and any of these manifest files:
-
-- `package.json`
-- `requirements.txt`
-- `pyproject.toml`
-- `go.mod`
-- `Cargo.toml`
-- `pom.xml`
-- `build.gradle`
-- `Gemfile`
-- `composer.json`
-
-If the CWD contains a `.git/` directory OR any of the manifest files listed above, proceed with large repository and trivial checks:
-
-**Large Repository Warning:**
-
-If the CWD appears to be a very large repository, warn before proceeding:
-
-**Large repository indicators:**
-- `.git/` directory size > 1GB (run `du -sh .git` if uncertain)
-- `node_modules/` or `venv/` or `target/` present in CWD (not gitignored)
-- Top-level directory listing shows > 100 files/directories
-
-**If large repository detected:**
-```
-This appears to be a large repository. Code-intel analysis may take longer and could hit filesystem limits.
-
-Recommendations before proceeding:
-- Ensure you're in the project root (not a parent directory containing multiple repos)
-- Run from a subdirectory if analyzing a monorepo sub-project
-- Check that large build artifacts (node_modules/, venv/, target/) are in .gitignore
-
-Continue anyway? (y/n)
-```
-
-If user says no, STOP.
-If user says yes, proceed to trivial repository check.
-
-**Trivial Repository Check:**
-
-After large repository check passes, **check for Trivial Repository anti-pattern (see Step 0.3).**
-
-If trivial repository detected and user has not provided `--force`, STOP.
-
-If user provides `--force` or repository is not trivial, proceed to Step 2.
-
-If neither `.git/` nor manifest files are found, tell the user:
-
-> "I don't see a recognizable code repository in the current directory. Please navigate to a project directory and try again."
-
-Then stop. Do not proceed.
+Read any README file (`README.md`, `README`, `README.rst`) to understand project purpose. Check manifest files to determine primary language and framework.
 
 ---
 
-### Step 2: Expanded Passive Scan
+### Step 2: Passive Code Structure Scan
 
-Use file reading and pattern matching only. Do NOT run any shell commands at this stage.
+Use file reading and pattern matching only. Do NOT run shell commands at this stage.
 
-**Infrastructure and Manifests:**
-1. Read the README file — try `README.md`, then `README`, `README.rst`, `README.txt` in that order. Read whichever one exists.
-2. Read all manifest and dependency files found in Step 1.
-3. List the top-level directory structure (files and directories matching `*` in CWD).
+**Identify entry points (where code starts):**
+1. Look for: `main()` functions, `if __name__ == "__main__"`, server startup files (`app.py`, `server.py`, `index.js`, `main.rs`, `main.go`)
+2. Check `package.json` for `"main"`, `"bin"`, or `"scripts"` fields
+3. Check for CLI entry points in manifest (`entry_points` in `setup.py`, `[bin]` in `Cargo.toml`)
 
-**Test Coverage Signals:**
-4. Check for test directories: `test/`, `tests/`, `spec/`, `__tests__/`, `src/**/test/`
-5. If found, list directory contents to estimate test file count
-6. Check manifest for test frameworks (pytest, jest, mocha, rspec, etc. in devDependencies or test requirements)
+**Identify core abstractions:**
+4. Search for abstract base classes or interfaces (files named `base.py`, `abstract.py`, `interface.ts`, traits in Rust)
+5. Scan for key class definitions and their inheritance hierarchy
+6. Identify major modules and their responsibility
 
-**CI/CD Configuration:**
-7. Check for CI/CD configuration files:
-   - `.github/workflows/*.yml` (GitHub Actions)
-   - `.gitlab-ci.yml` (GitLab)
-   - `Jenkinsfile` (Jenkins)
-   - `.circleci/config.yml` (CircleCI)
-   - `.travis.yml` (Travis)
-   - `azure-pipelines.yml` (Azure DevOps)
-8. If found, read one CI config file to identify: test automation, deployment steps, matrix configurations
+**Identify extension/integration points:**
+7. Look for patterns: decorators, hooks/callbacks, middleware, factory methods, plugin systems
+8. Check for configuration-driven behavior (`__init__` parameters, config files, env var reading)
+9. Scan for callback registration (`.on()`, `.register()`, `.subscribe()`, event listeners)
 
-**Security Indicators:**
-9. Check for security-related files:
-   - `SECURITY.md` (security policy)
-   - `.env.example` (environment variable template - check if `.env` is gitignored)
-   - `dependabot.yml` or `renovate.json` (automated dependency updates)
-10. Check `.gitignore` for secrets hygiene (are `.env`, `*.key`, `*.pem`, credentials patterns ignored?)
+**Identify public APIs:**
+10. Check which functions/classes are exported (top-level in main files, `__all__` in Python, `export` statements)
+11. Identify main interfaces users would interact with
 
-**From this expanded passive scan, identify:**
-
-- Primary language(s) and frameworks
-- Project type (library, API service, CLI tool, monorepo, etc.)
-- Key dependencies and integration points
-- Test framework and approximate test coverage level (none, minimal, substantial)
-- CI/CD presence and automation level
-- Security practices (dependency updates, secrets hygiene)
-- Anything notably interesting — for example: Kafka, GraphQL, ML frameworks, multi-service layouts, legacy patterns, deprecated dependencies
+**From this scan, document:**
+- Entry point(s) and startup sequence
+- Core abstractions and how they relate
+- Extension mechanisms (how users hook in)
+- Configuration options and where they're read
+- What's public vs internal
 
 ---
 
