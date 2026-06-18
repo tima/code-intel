@@ -83,67 +83,47 @@ Keep asking clarifying questions until the user's question is specific enough th
 
 ---
 
-### Step 4: Permission Gate with Selective Approval
+### Step 4: Permission Gate
 
-Before running any shell commands, present a list of exactly what you plan to run and ask for permission. Tailor the command list to the detected tech stack.
+Before running code analysis commands, present what you plan to run and ask for permission.
 
-**Present commands with individual approval options:**
+**Propose stack-specific code exploration commands:**
 
 ```
-To do a thorough analysis, I'd like to run the following commands.
+To trace the code paths related to your question, I'd like to run:
 
-Approve all, approve individually, or decline all?
-
-Proposed commands:
-1. `git log --oneline -50` — recent commit history
-2. `git shortlog -sn --no-merges` — contributor activity  
-3. `git diff HEAD~10..HEAD --stat` — recent change volume
-4. `npm audit --json` — dependency vulnerability check (Node.js detected)
+1. grep -rn "def main\|def __init__\|class.*:" --include="*.py" | head -30
+   → Find entry points and core classes
+2. grep -rn "import\|from .* import" --include="*.py" | head -50
+   → Map module dependencies
+3. find . -type f -name "*.py" | xargs wc -l | sort -rn | head -20
+   → Identify largest/key modules by line count
 
 Options:
 A) Approve all
-B) Approve individually (I'll ask for each)
-C) Decline all (passive scan only)
+B) Approve individually
+C) Decline all (we'll work from file inspection only)
 
 Your choice?
 ```
 
-**If user chooses A (approve all):** Run all commands.
-
-**If user chooses B (approve individually):** For each command, ask:
-```
-Run `[command]` — [description]? (y/n)
-```
-Run only approved commands.
-
-**If user chooses C (decline all):** Proceed with passive scan data only and note in report:
-```
-**Analysis Limitations:** User declined shell command permissions. Analysis based on passive file scan only (no git history, no dependency audit results).
-```
-
-**Track which commands were approved** for use in report limitations section.
-
-**Stack-specific dependency audit commands — include when relevant:**
-
-| Stack | Command |
-|---|---|
-| Node.js | `npm audit --json` or `yarn audit --json` |
-| Python | `pip-audit` or `safety check` |
-| Rust | `cargo audit` |
-| Ruby | `bundle audit` |
-| Go | `govulncheck ./...` |
-| Java/Maven | `mvn dependency:analyze` |
+If user chooses C, note in report: "Analysis based on file reading only (no code tracing)."
 
 ---
 
 ### Step 5: Deep Analysis
 
-Run all approved commands and synthesize the findings. Apply only the areas that are relevant to the stated objective and the tools the user approved.
+Run approved commands. For the user's specific question, trace code paths:
 
-- **Git history** — commit cadence, contributor spread, recent activity, areas of churn
-- **Dependency health** — outdated packages, known vulnerabilities, dependency count
-- **Code structure, tests, and CI/CD** — use file reading and pattern matching (not shell commands) to explore directory organization, size distribution, test coverage, and pipeline config. This applies even if the user declined some or all shell commands.
-- **Configuration and environment** — `.env` files, config patterns, secrets hygiene signals
+**Example trace for "how would we add authentication?":**
+- Find where requests enter the system (entry point from Step 2)
+- Grep for `def get_user()`, `auth`, `token` patterns
+- Identify existing auth/permission checks
+- Trace from entry point → auth check → user context
+- Identify where user context is passed/stored
+- Document what an auth implementation would need to hook into
+
+**Apply only to the user's specific question.** Don't do comprehensive analysis of everything — focus the trace on their code understanding goal.
 
 ---
 
