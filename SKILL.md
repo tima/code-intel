@@ -129,49 +129,104 @@ Run approved commands. For the user's specific question, trace code paths:
 
 ### Step 6: Get Timestamp
 
-Capture the current UTC time ONCE and store it for use in Step 7. This prevents time drift between capture and report writing.
+Capture current date/time for report footer:
 
-**Timestamp capture priority order:**
+Run: `date -u +"%b-%d-%Y %H:%M UTC"` or use current date if unavailable.
 
-1. **Shell command (preferred):** Run `date -u +"%b-%d-%Y %H:%M UTC"`
-2. **Web search (fallback):** Search "current UTC time" and extract the result.
-3. **Last resort:** Use `[timestamp unavailable]`.
-
-**Store the result immediately.** Do not re-fetch the timestamp in Step 7. Use the captured value in the report footer.
-
-**Example:**
-- Capture: `Jun-15-2026 18:32 UTC`
-- Use in footer: `Claude Code | Claude Sonnet 4.6 | Jun-15-2026 18:32 UTC`
+Store the timestamp — do not re-fetch.
 
 ---
 
-### Step 7: Generate and Save Report
+### Step 7: Generate Report
 
-Generate the full report, then save it to the CWD.
+Create a report answering the user's tactical code question. Save to CWD as: `code-intel-<project-name>-<YYYY-MM-DD>.md`
 
-**Filename format:** `code-intel-<project-name>-<YYYY-MM-DD>.md`
+**Report structure:**
 
-- Derive `<project-name>` from the CWD directory name or the project name in the manifest. Use lowercase with hyphens for spaces. Keep it under 40 characters.
-- `<YYYY-MM-DD>` comes from the timestamp captured in Step 6.
-- Check whether that filename already exists. If it does, append `-2`, `-3`, etc. until you find an unused name.
+```markdown
+# [Project Name] — Code Intelligence Report
 
-Before writing: announce `"Saving report to <filename>..."`
-
-After writing: confirm `"Report saved to <filename>."`
-
-**Report structure:** See examples/example-flask-library.md for template. Footer format: `[Provider/Tool] | [Model] | [Timestamp UTC]`
+**Objective:** [User's specific question]  
+**Repository:** [CWD]
 
 ---
 
-**Pre-write Validation:**
+## Executive Summary
 
-**Required (fail-fast if missing):** Exec Summary (2-3 sentences, specific finding), Tech Stack (specific languages/frameworks/versions), 3+ Key Findings (not generalizations), 2+ Detailed Analysis subsections, Strengths/Weaknesses table (2+ per column, evidence-based), Recommendations (title includes area of interest, 3+ actionable items), Footer (provider/model/timestamp)
+[1-2 sentences answering their question directly. Example: "Authentication is currently bypassed in development mode; to add production auth, you'd implement the `AuthProvider` interface and pass it to `Application.__init__()`."]
 
-**Quality (warn but proceed):** No weasel words ("likely", "probably"), specific numbers ("139 commits" not "many"), recommendations address objective, <20 word sentences, no jargon
+---
 
-**If required missing:** Offer A) abort, B) save with **INCOMPLETE ANALYSIS** disclaimer, C) retry with more data
+## Code Architecture
 
-**If quality fails:** Warn, list issues, proceed with save
+[How the code is organized. Example: "Core request dispatch lives in `app.py`. Middleware chain in `middleware/`. Database models in `models/`. Auth currently only checks a hardcoded role."]
+
+[Entry points: where execution starts]  
+[Key modules and their responsibility]  
+[How modules interact]
+
+---
+
+## Answer to Your Question
+
+[Directly answer "how would we add X" / "how does Y work" / "where do we integrate Z"]
+
+[Trace the code path relevant to their question. Include actual file names and function/class names.]
+
+Example format for "how would we add authentication":
+- Request enters via `app.py:handle_request()`
+- Passes through middleware in `middleware/chain.py`
+- Calls handler in `handlers/auth.py:verify_user()`
+- Currently returns hardcoded user object from line 23
+- To add real auth: implement `AuthProvider` interface (defined in `auth/base.py`), pass to `Application.__init__()` at line 15
+
+---
+
+## Extension/Integration Points
+
+[Where users of this code would hook in new behavior]
+
+- To add custom logging: subclass `LogHandler` in `logging/base.py` and register in `app.py:setup_logging()`
+- To add database migrations: place files in `migrations/` with pattern `00N_*.sql`
+- To extend API responses: implement `ResponseFormatter` interface in `formatters/`
+
+---
+
+## Code Reading Guide
+
+[Suggest the order to understand the code]
+
+1. Start with `app.py` to understand initialization
+2. Read `handlers/` to see request handling
+3. Understand middleware chain in `middleware/chain.py`
+4. Examine `models/` for data structures
+
+---
+
+## Strengths & Weaknesses
+
+| Strengths | Weaknesses |
+|-----------|-----------|
+| [2+ code-specific strengths with evidence] | [2+ code-specific weaknesses with evidence] |
+
+Example: "Clean separation between data models and request handlers" | "Request handler does too much; should split validation from dispatch"
+
+---
+
+[Provider/Tool] | [Model] | [Timestamp UTC]
+```
+
+**Pre-write validation:**
+
+Required sections: Executive Summary, Code Architecture, Answer to Question, Extension Points, Code Reading Guide, Strengths/Weaknesses, Footer.
+
+If any missing, offer: A) abort, B) save with **INCOMPLETE** warning, C) retry.
+
+**Quality checks:**
+- No weasel words ("likely", "probably", "appears to")
+- Specific code references (file names, function names)
+- Sentences under 20 words
+- Recommendations tied to code structure, not project health
 
 ## Strict Fidelity Rules
 
