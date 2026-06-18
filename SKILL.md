@@ -61,43 +61,25 @@ Use file reading and pattern matching only. Do NOT run shell commands at this st
 
 ### Step 3: Interview
 
-Present a brief 1–2 sentence context summary of what you found in the passive scan. Then ask clarifying questions **one at a time** to establish:
-
-1. **Objective** — what the user wants to learn or achieve
-2. **Area of Interest** — the focus angle for the recommendations section
-
-Keep asking follow-up questions if answers are vague, too broad, or ambiguous. Do NOT proceed to Step 4 until both the objective and the area of interest are specific enough to produce a focused report.
+Present a brief 1-sentence summary of what you found in the passive scan. Then ask one direct question:
 
 **Example opener:**
 
-> "I can see this is a Python FastAPI service with PostgreSQL and Celery for async tasks. What's your objective for this analysis?"
+> "I can see this is a Python FastAPI service with database models and async task handling. What specifically do you want to understand about this code?"
 
-**If the answer is vague:**
+**Probe for specificity. Valid answers include:**
+- "How would we add authentication to this?"
+- "How does the data flow from request to database?"
+- "Where would we integrate Kafka for event processing?"
+- "How do we extend this to support custom plugins?"
+- "What happens when X fails and where is that logic?"
 
-> "Are you evaluating it for adoption, looking for risks before a release, assessing maintainability, or something else?"
+**If vague, ask:**
+> "Are you trying to understand how a specific feature works, evaluate how to add something new, or figure out where to hook in external integrations?"
 
-**Example area-of-interest prompt:**
+Keep asking clarifying questions until the user's question is specific enough that you could trace code to answer it.
 
-> "Got it. What angle should I focus recommendations on? For example: security posture, dependency health, code maintainability, architectural fitness, contributor health, or release readiness?"
-
-Keep probing until both are specific. If the objective and area of interest remain too broad after follow-up, stop and ask again before moving on.
-
-A good objective names a concrete deliverable — for example: "decide whether to adopt this library," "prepare a risk briefing for the upcoming release," or "assess whether this codebase can support the new feature." If the user's answer is still a general verb or stance without a concrete output, ask again.
-
-A good area of interest names a specific lens — for example: "dependency health," "security posture," "release readiness," or "contributor sustainability." If the answer is too broad (e.g., "everything" or "general quality"), ask the user to pick one focus area.
-
-**Context Scoring:**
-
-Collect 5 items: objective, area of interest, role, timeline, success criteria
-
-- **5/5** = proceed to Step 4
-- **3-4/5** = warn user, list missing items, ask to proceed with caveats or provide more context
-- **0-2/5** = STOP, list missing items with rationale, offer: A) generic overview (no Recommendations), B) continue clarification
-- **>5 rounds at <3/5** = offer to stop (objective may be unclear)
-
-If user stops or proceeds with <3/5, note `**Context Limitations:**` in report.
-
-Only proceed to Step 4 if score is 3/5 or higher.
+**Proceed to Step 4** when you understand: what part of the code they want to understand, and what operation/change they're evaluating.
 
 ---
 
