@@ -25,7 +25,8 @@ Reports are laser-focused on answering your tactical code question — not proje
 ## Installation
 
 ```bash
-git clone https://github.com/username/code-intel-skill.git ~/projects/code-intel-skill
+# Replace REPO_OWNER with the actual GitHub username or org
+git clone https://github.com/REPO_OWNER/code-intel-skill.git ~/projects/code-intel-skill
 ln -s ~/projects/code-intel-skill ~/.claude/skills/code-intel
 ```
 

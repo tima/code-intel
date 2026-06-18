@@ -100,4 +100,4 @@ class CustomValidationMiddleware(BaseMiddleware):
 
 ---
 
-Claude Haiku 4.5 | Jun-17-2026 15:30 UTC
+Claude Code | Haiku 4.5 | Jun-17-2026 15:30 UTC

@@ -32,12 +32,27 @@ Read any README file (`README.md`, `README`, `README.rst`) to understand project
 Use file reading and pattern matching only. Do NOT run shell commands at this stage.
 
 **Identify entry points (where code starts):**
-1. Look for: `main()` functions, `if __name__ == "__main__"`, server startup files (`app.py`, `server.py`, `index.js`, `main.rs`, `main.go`)
-2. Check `package.json` for `"main"`, `"bin"`, or `"scripts"` fields
-3. Check for CLI entry points in manifest (`entry_points` in `setup.py`, `[bin]` in `Cargo.toml`)
+
+Adapt to detected language from Step 1:
+
+*Python:* `if __name__ == "__main__"`, files named `main.py`/`app.py`/`server.py`; `entry_points`/`console_scripts` in `setup.py`; `[project.scripts]` in `pyproject.toml`
+
+*JavaScript/Node.js:* `index.js` or file referenced in `package.json:"main"`; `"scripts":"start"` in `package.json`; top-level `app.listen()`/`server.listen()`
+
+*Go:* `func main()` in any `package main` file; `cmd/` directory containing main packages; check `go.mod` for module name
+
+*Rust:* `fn main()` in `src/main.rs`; `[[bin]]` entries in `Cargo.toml`
+
+*Ruby:* `bin/` directory; files requiring `./config/application` (Rails); `Rakefile` entry tasks
+
+*Java/Kotlin:* Classes with `public static void main`; Spring `@SpringBootApplication`; `pom.xml`/`build.gradle` mainClass config
+
+1. Find entry point file(s) using patterns above
+2. Check `package.json` for `"main"`, `"bin"`, or `"scripts"` fields (all JS/Node projects)
+3. Check manifest for CLI entry points
 
 **Identify core abstractions:**
-4. Search for abstract base classes or interfaces (files named `base.py`, `abstract.py`, `interface.ts`, traits in Rust)
+4. Search for abstract base classes or interfaces (Python: `base.py`, `abstract.py`; TypeScript: `interface.ts`; Go: interfaces in `*.go`; Rust: traits; Java: `Abstract*.java`, `*Interface.java`)
 5. Scan for key class definitions and their inheritance hierarchy
 6. Identify major modules and their responsibility
 
@@ -79,7 +94,22 @@ Present a brief 1-sentence summary of what you found in the passive scan. Then a
 
 Keep asking clarifying questions until the user's question is specific enough that you could trace code to answer it.
 
-**Proceed to Step 4** when you understand: what part of the code they want to understand, and what operation/change they're evaluating.
+**Stop asking when the question meets all three criteria:**
+1. Identifies a specific code path, feature, or integration point
+2. Is answerable by reading code and tracing execution
+3. Can be demonstrated with exact file/function names in the answer
+
+*Specific enough:*
+- "How does the payment processing flow work from API call to database write?"
+- "Where would we hook in custom authentication middleware?"
+- "What happens when a webhook delivery fails and where is the retry logic?"
+
+*Too vague (ask again):*
+- "How does this work?" — which part?
+- "Help me understand the codebase" — no specific target
+- "Is this any good?" — evaluating health, not understanding code
+
+**Proceed to Step 4** when the question is specific enough to trace.
 
 ---
 
@@ -89,16 +119,53 @@ Before running code analysis commands, present what you plan to run and ask for 
 
 **Propose stack-specific code exploration commands:**
 
+Adapt commands to the language detected in Step 1.
+
+*Python projects:*
 ```
 To trace the code paths related to your question, I'd like to run:
 
 1. grep -rn "def main\|def __init__\|class.*:" --include="*.py" | head -30
    → Find entry points and core classes
-2. grep -rn "import\|from .* import" --include="*.py" | head -50
+2. grep -rn "^import\|^from .* import" --include="*.py" | head -50
    → Map module dependencies
 3. find . -type f -name "*.py" | xargs wc -l | sort -rn | head -20
    → Identify largest/key modules by line count
+```
 
+*JavaScript/Node.js projects:*
+```
+1. grep -rn "function \|class \|module.exports\|export " --include="*.js" --include="*.ts" | head -30
+   → Find entry points and core classes
+2. grep -rn "require(\|import " --include="*.js" --include="*.ts" | head -50
+   → Map module dependencies
+3. find . -type f \( -name "*.js" -o -name "*.ts" \) | xargs wc -l | sort -rn | head -20
+   → Identify largest/key modules by line count
+```
+
+*Go projects:*
+```
+1. grep -rn "func \|type.*struct\|interface {" --include="*.go" | head -30
+   → Find entry points and core types
+2. grep -rn "^import" --include="*.go" | head -50
+   → Map package dependencies
+3. find . -type f -name "*.go" | xargs wc -l | sort -rn | head -20
+   → Identify largest/key files by line count
+```
+
+*Rust projects:*
+```
+1. grep -rn "fn \|struct \|trait \|impl " --include="*.rs" | head -30
+   → Find entry points and core types
+2. grep -rn "^use \|^extern crate" --include="*.rs" | head -50
+   → Map crate dependencies
+3. find . -type f -name "*.rs" | xargs wc -l | sort -rn | head -20
+   → Identify largest/key modules by line count
+```
+
+Present the adapted command list, then:
+
+```
 Options:
 A) Approve all
 B) Approve individually
@@ -124,6 +191,15 @@ Run approved commands. For the user's specific question, trace code paths:
 - Document what an auth implementation would need to hook into
 
 **Apply only to the user's specific question.** Don't do comprehensive analysis of everything — focus the trace on their code understanding goal.
+
+**If code tracing fails or yields no results:**
+
+1. Fall back to manual file inspection (read key files identified in Step 2)
+2. If still unable to trace the path, document in report under **Analysis Limitations**:
+   > "Could not trace [specific path] — [reason: pattern not found / code is dynamically generated / insufficient signal in static analysis]. Analysis based on [files inspected]."
+3. Report what was found; don't fill gaps with inference
+
+Never hallucinate code paths. If evidence is absent, say so.
 
 ---
 
@@ -213,7 +289,7 @@ Example: "Clean separation between data models and request handlers" | "Request 
 
 ---
 
-[Provider/Tool] | [Model] | [Timestamp UTC]
+Claude Code | [Model: e.g. "Haiku 4.5" or "Sonnet 4.6"] | [Timestamp from Step 6]
 ```
 
 **Pre-write validation:**

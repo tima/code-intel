@@ -8,35 +8,37 @@
 - Directory structure suggesting multiple projects (`apps/`, `packages/`, `services/`)
 - Mixed languages (Python + JavaScript, Go + TypeScript, etc.)
 
-## Expected Interview Questions
+## Expected Interview
 
-After passive scan summary:
-> "I can see this is a monorepo with [X] sub-projects across [Y] languages. What's your objective for this analysis?"
+After passive scan summary, the skill asks one direct question:
 
-**Follow-up probes if vague:**
-> "Are you evaluating the entire monorepo architecture, focusing on a specific service, assessing dependency management practices, or something else?"
+> "I can see this is a monorepo with [X] sub-projects across [Y] languages. What specifically do you want to understand about this code?"
 
-**Area of interest clarification:**
-> "Should recommendations focus on monorepo tooling, inter-service dependencies, build performance, deployment patterns, or another angle?"
+**Valid specific answers:**
+- "How would we add a new service that integrates with the payment system?"
+- "Where would we hook in a shared logging library across all services?"
+- "How do dependencies flow between the frontend and backend services?"
+- "Where is the deployment orchestration and how would we add a new service to it?"
+
+**If vague** (e.g., "understand the architecture"), probe:
+> "Are you trying to understand how a specific service works, see how two services interact, or figure out where to add a new integration?"
+
+Keep probing until the question identifies a specific code path, feature, or integration point.
 
 ## Expected Report Sections
 
-**Tech Stack & Architecture:**
-- Identify monorepo structure
-- List sub-projects by type
-- Note workspace management tool
-- Map dependencies between internal packages
+**Code Architecture:**
+- Monorepo structure: sub-project list, workspace tool (lerna, pnpm, Turborepo)
+- Entry points per service
+- Inter-service dependency map (which packages import which)
 
-**Key Findings:**
-- Circular dependency risks (if any)
-- Shared dependency version conflicts
-- Build tooling complexity
+**Answer to Question:**
+- Traced code path answering the specific question
+- Exact file/function names in the relevant service(s)
 
-**Recommendations:**
-- Should address monorepo-specific concerns
-- Dependency hoisting strategies
-- Build caching opportunities
-- Deployment coordination patterns
+**Extension/Integration Points:**
+- Where new services plug into shared infrastructure
+- How cross-service contracts are defined (shared types, API clients, event schemas)
 
 ## Edge Case: User Wants Single Sub-Project Analysis
 
