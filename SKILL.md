@@ -1,39 +1,23 @@
 ---
 name: code-intel
-description: Deep codebase analysis producing strategic markdown reports. Interviews user about objective, analyzes repo structure/dependencies/history, generates actionable intelligence. Use for understanding repos from product/business perspective.
+description: Analyze codebases to understand how they work and how to extend/integrate them. Traces code architecture, entry points, extension points, and integration seams. Use to answer "how would we add X", "how does Y work", "where do we integrate Z".
 ---
 
 ---
 
-### Step 0: Anti-Pattern Detection
+### Step 0: Repo Validation
 
-Code-intel is a strategic analysis tool (5-15 min) for substantial codebases. NOT appropriate for trivial repos, emergencies, or validation-seeking.
+Code-intel requires a git repository or recognizable project structure.
 
-**Check anti-patterns in order:**
+**Check for repo presence:**
+- Run: `test -d .git && echo "git repo found" || echo "no git repo"`
+- Check for manifest files: `package.json`, `requirements.txt`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `pom.xml`, `build.gradle`, `Gemfile`, `composer.json`
 
-#### 0.1: Emergency Decision
+If no `.git/` and no manifest files found, stop with message:
 
-Detect time pressure: "production down", "outage", "incident", "need decision in <30 min", "security breach", "urgent"
+> "I don't see a recognizable code repository here. Navigate to a project root and try again."
 
-**If detected, STOP:** Present emergency warning (see test-scenarios/emergency-request.md for exact text). Suggest quick alternatives: README review, `git log --oneline -20`, stack-specific audit tool.
-
-#### 0.2: Validation-Seeking
-
-Detect pre-stated conclusion: "I think we should X, confirm", "validate", "prove", "management wants", "already decided"
-
-**If detected, ASK:** Present validation-seeking clarification (see test-scenarios/validation-seeking.md for exact text). Wait for user choice: A) critical assessment, B) genuinely open, C) documentation. Adjust objective framing accordingly.
-
-#### 0.3: Trivial Repository
-
-**Check AFTER Step 1 repo verification.**
-
-Run: `find . -type f | wc -l`, check manifest dependencies, `git rev-list --count HEAD`
-
-Trivial indicators: <10 files, zero dependencies, <5 commits, single-file project
-
-**If detected, STOP:** Present trivial warning (see test-scenarios/trivial-repo.md for exact text).
-
-**--force override:** User can override any anti-pattern. If overriding emergency or trivial, add limitations note to report Executive Summary.
+If repo found, proceed to Step 1.
 
 ---
 
