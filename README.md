@@ -25,9 +25,29 @@ Reports are laser-focused on answering your tactical code question — not proje
 ## Installation
 
 ```bash
-# Replace REPO_OWNER with the actual GitHub username or org
-git clone https://github.com/REPO_OWNER/code-intel-skill.git ~/projects/code-intel-skill
-ln -s ~/projects/code-intel-skill ~/.claude/skills/code-intel
+# User scope — available in all sessions (recommended)
+npx skills add tima/code-intel-skill -g
+
+# Project scope — available in this project only
+npx skills add tima/code-intel-skill
+```
+
+Target a specific agent:
+```bash
+npx skills add tima/code-intel-skill -g -a claude-code
+```
+
+Local development install:
+```bash
+git clone https://github.com/tima/code-intel-skill.git ~/projects/code-intel-skill
+ln -sf ~/projects/code-intel-skill ~/.claude/skills/code-intel
+```
+
+### Uninstall
+
+```bash
+npx skills remove code-intel           # project scope
+npx skills remove code-intel --global  # user scope
 ```
 
 ## Usage
@@ -62,4 +82,4 @@ See [example Django integration analysis](examples/example-django-integration.md
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
