@@ -26,21 +26,21 @@ Reports are laser-focused on answering your tactical code question — not proje
 
 ```bash
 # User scope — available in all sessions (recommended)
-npx skills add tima/code-intel-skill -g
+npx skills add tima/code-intel -g
 
 # Project scope — available in this project only
-npx skills add tima/code-intel-skill
+npx skills add tima/code-intel
 ```
 
 Target a specific agent:
 ```bash
-npx skills add tima/code-intel-skill -g -a claude-code
+npx skills add tima/code-intel -g -a claude-code
 ```
 
 Local development install:
 ```bash
-git clone https://github.com/tima/code-intel-skill.git ~/projects/code-intel-skill
-ln -sf ~/projects/code-intel-skill ~/.claude/skills/code-intel
+git clone https://github.com/tima/code-intel.git ~/projects/code-intel
+ln -sf ~/projects/code-intel ~/.claude/skills/code-intel
 ```
 
 ### Uninstall
