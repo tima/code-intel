@@ -3,6 +3,10 @@ name: code-intel
 description: Analyze codebases to understand how they work and how to extend/integrate them. Traces code architecture, entry points, extension points, and integration seams. Use to answer "how would we add X", "how does Y work", "where do we integrate Z".
 ---
 
+# code-intel
+
+Analyze codebases to understand how they work and how to extend or integrate them.
+
 ---
 
 ### Step 0: Repo Validation
