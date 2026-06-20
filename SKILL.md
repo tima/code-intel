@@ -1,6 +1,6 @@
 ---
 name: code-intel
-description: Analyze codebases to understand how they work and how to extend/integrate them. Traces code architecture, entry points, extension points, and integration seams. Use to answer "how would we add X", "how does Y work", "where do we integrate Z".
+description: "Use when you need to understand how a codebase works, where to add a feature, or how to integrate it with another system. Triggers on: 'how would we add X', 'how does Y work', 'where do we integrate Z', 'walk me through this code', 'where are the extension points', 'what happens when X fails'."
 ---
 
 # code-intel
