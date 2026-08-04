@@ -184,6 +184,8 @@ If user chooses C, note in report: "Analysis based on file reading only (no code
 
 ### Step 5: Deep Analysis
 
+**Source Definition:** "Source" means tool results from this session only — file reads, grep matches, and command output. Framework/language background knowledge is not a source. Claims from background knowledge must be labeled "Note:" in italics. Claims that are neither traceable to a tool result nor explicitly labeled must be omitted.
+
 Run approved commands. For the user's specific question, trace code paths:
 
 **Example trace for "how would we add authentication?":**
@@ -202,6 +204,7 @@ Run approved commands. For the user's specific question, trace code paths:
 2. If still unable to trace the path, document in report under **Analysis Limitations**:
    > "Could not trace [specific path] — [reason: pattern not found / code is dynamically generated / insufficient signal in static analysis]. Analysis based on [files inspected]."
 3. Report what was found; don't fill gaps with inference
+4. **Comment/annotation attribution:** Claims found in code comments, docstrings, or TODO annotations are developer-stated intent, not verified behavior. Label them: "The author notes in a docstring that..." — not as assertions about runtime behavior.
 
 Never hallucinate code paths. If evidence is absent, say so.
 
@@ -296,6 +299,48 @@ Example: "Clean separation between data models and request handlers" | "Request 
 Claude Code | [Model: e.g. "Haiku 4.5" or "Sonnet 4.6"] | [Timestamp from Step 6]
 ```
 
+**Verify Before Writing Report** — run this silently before writing any section. No output to user.
+
+Determine analysis scope: if many files were read or many grep result sets were processed, use spot-check mode (marked below); otherwise run full verification.
+
+**Full verification:**
+
+1. **Per-claim traceability:** For every file path, function name, line number, call direction ("A calls B"), and dependency claim ("X depends on Y") — confirm it appears in a tool result from this session. Not traceable → omit. Verify named entity type: confirm whether the entity is a function, method, class, interface, or module — do not conflate.
+
+2. **High-risk pattern checklist:**
+   - Direction inversions: re-read the tool result for any claim asserting "calls X" vs. "called by X" — these flip easily
+   - Named entity type: verify the exact construct found (function vs. method vs. class vs. interface vs. module)
+   - Scope trigger words: "always", "throughout", "everywhere", "the system" are banned unless the full scope was traced — replace with the actual path traced
+   - Entity relationships: only assert a dependency if an import or call site appeared in tool results
+
+3. **Fabricated sequence (zero-tolerance):** "calls", "which causes", "this triggers", "leading to", and equivalents are prohibited without a traced call chain in tool results. If the sequence cannot be traced, describe what was found and drop the causal assertion.
+
+4. **Enumerated list completeness:** If grep returned N results, report N. "Several", "multiple", "a few", "various" are prohibited when the actual count is known from tool results.
+
+5. **Quantitative fabrication:** One call site found → "one call site." Do not generalize single data points to ranges or vague plurals.
+
+6. **Traceability gate (by section):**
+   - *Extension/Integration Points:* every item traces to a tool result
+   - *Answer to Your Question:* every file/function/flow claim traces to a tool result
+   - *Code Architecture:* every module-responsibility or inter-module claim traces to a tool result
+   - Framework background knowledge in any section → label "Note:" in italics
+
+7. **Comment/annotation attribution:** Scan report for claims sourced from comments, docstrings, or TODOs. Verify each is labeled as developer-stated, not asserted as verified behavior.
+
+8. **Internal consistency:** Check these pairs for contradictions — source (tool results) is the tiebreaker:
+   - Executive Summary vs. Answer to Your Question
+   - Code Architecture vs. Answer to Your Question
+   - Strengths/Weaknesses vs. Code Architecture
+
+9. **Labeled inference:** Architectural reasoning that connects findings beyond direct trace must be labeled "Inference:" or "For context:". Verify no unlabeled inference exists.
+
+**Spot-check mode** (large analysis scope — many files read or many grep result sets):
+- Run checks 1, 3, 4, and 5 on Extension/Integration Points and Answer to Your Question only
+- Run check 8 on Executive Summary vs. Answer only
+- Check 6: verify named specifics in Code Architecture only (skip full traceability gate)
+
+---
+
 **Pre-write validation:**
 
 Required sections: Executive Summary, Code Architecture, Answer to Question, Extension Points, Code Reading Guide, Strengths/Weaknesses, Footer.
@@ -312,7 +357,9 @@ If any missing, offer: A) abort, B) save with **INCOMPLETE** warning, C) retry.
 
 Apply these throughout the interview and the report.
 
-**Zero-Hallucination:** If information is unavailable or outside your access, write: "Information not found." Never bridge gaps with logical inferences or "likely" scenarios.
+**Zero-Hallucination (factual claims):** Every factual claim — file paths, function names, call directions, dependencies, counts — must trace to a tool result from this session. If information is unavailable or outside your access, write: "Information not found." Do not bridge gaps with inference.
+
+**Labeled inference (architectural reasoning):** Inference that connects findings beyond direct trace is permitted only when labeled "Inference:" or "For context:". Unlabeled inference is a hallucination.
 
 **Contradiction Flagging:** If you find conflicting data points, do not reconcile them. Present both sides and label them **Conflicting Evidence**.
 
