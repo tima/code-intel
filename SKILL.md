@@ -379,6 +379,8 @@ Apply these throughout the interview and the report.
 
 **Labeled inference (architectural reasoning):** Inference that connects findings beyond direct trace is permitted only when labeled "Inference:" or "For context:". Unlabeled inference is a hallucination.
 
+**Version/spec keyword validity:** Before asserting that a language feature, schema keyword, library method, or API capability is effective or enforced, verify it is supported by the declared version or spec in use. Check the version declaration first (`$schema`, `"version"`, `requires`, import path, etc.), then confirm the feature exists in that version's vocabulary. If a keyword or feature is present in the file but unsupported by the declared version, state it explicitly: "This [keyword/method] is not valid in [declared version] and will be silently ignored — its presence does not enforce the intended behavior." Do not infer behavior from presence alone.
+
 **Contradiction Flagging:** If you find conflicting data points, do not reconcile them. Present both sides and label them **Conflicting Evidence**.
 
 **Critical Assessment:** Build Strengths/Weaknesses from available data only. Be skeptical, not optimistic.
