@@ -186,6 +186,8 @@ If user chooses C, note in report: "Analysis based on file reading only (no code
 
 **Source Definition:** "Source" means tool results from this session only — file reads, grep matches, and command output. Framework/language background knowledge is not a source. Claims from background knowledge must be labeled "Note:" in italics. Claims that are neither traceable to a tool result nor explicitly labeled must be omitted.
 
+**Click shared options pattern (Python):** When a Click project uses a shared decorator like `common_options()` or a similar factory that applies multiple options to a command, do not treat any single command file as representative of which commands expose those options. Always search for all applications of the shared decorator before making claims about option availability across commands.
+
 Run approved commands. For the user's specific question, trace code paths:
 
 **Example trace for "how would we add authentication?":**
@@ -197,6 +199,8 @@ Run approved commands. For the user's specific question, trace code paths:
 - Document what an auth implementation would need to hook into
 
 **Apply only to the user's specific question.** Don't do comprehensive analysis of everything — focus the trace on their code understanding goal.
+
+**Shared registration audit:** When a CLI option, decorator, plugin hook, or shared factory function is identified, search for *all* call sites before making claims about which commands or modules use it. For decorator-based registration (e.g., `@common_options`, `@click.option`, `@app.route`), search for the decorator name across the entire relevant directory — not just the file where the feature was first found. Report the full result set. Do not claim which commands expose a feature without having run this search. Applies to: Click option decorators, pluggy hook implementations, factory/registry `.register()` calls, and any pattern where a capability is conferred by applying a shared decorator or registration call.
 
 **If code tracing fails or yields no results:**
 
@@ -267,7 +271,7 @@ Example format for "how would we add authentication":
 
 ## Extension/Integration Points
 
-[Where users of this code would hook in new behavior]
+[Where users of this code would hook in new behavior — run Extension guidance audit before writing this section]
 
 - To add custom logging: subclass `LogHandler` in `logging/base.py` and register in `app.py:setup_logging()`
 - To add database migrations: place files in `migrations/` with pattern `00N_*.sql`
@@ -298,6 +302,14 @@ Example: "Clean separation between data models and request handlers" | "Request 
 
 Claude Code | [Model: e.g. "Haiku 4.5" or "Sonnet 4.6"] | [Timestamp from Step 6]
 ```
+
+**Extension guidance audit:** Before writing any "minimum diff", "files to touch", or "N-line change" guidance:
+
+1. For each file named: verify it contains the relevant symbol (read the file or grep for the symbol).
+2. For each symbol to be added or modified: grep for all other files that import or reference that symbol, and determine whether they also need changes.
+3. State the search used and the result count.
+
+If the exhaustive search was not run, write: `"Files identified by tracing; exhaustive search not performed — verify no additional call sites exist before implementing."` Do not state a specific file count ("touch 3 files", "minimum 2-line diff") without having verified completeness.
 
 **Verify Before Writing Report** — run this silently before writing any section. No output to user.
 
@@ -346,6 +358,12 @@ Determine analysis scope: if many files were read or many grep result sets were 
 Required sections: Executive Summary, Code Architecture, Answer to Question, Extension Points, Code Reading Guide, Strengths/Weaknesses, Footer.
 
 If any missing, offer: A) abort, B) save with **INCOMPLETE** warning, C) retry.
+
+**Exclusivity gate:** Any claim using "only", "solely", "exclusively", "the only", or "just" in a scope-limiting context requires a search proving no other instances exist. The search command and result count must be cited inline. If the search returns more results than the claim implies, the claim must be corrected before the report is written.
+
+Example of a failing claim: `"only test.py exposes --workers"` — run `grep -r "workers" src/molecule/command/` and cite the result count. If that returns 3 matches (test.py, check.py, destroy.py), the claim is false and must be rewritten.
+
+If the exclusivity search was not run, scope the claim to what was actually traced: `"test.py exposes --workers (other commands not verified)"` — not stated as exclusive fact.
 
 **Quality checks:**
 - No weasel words ("likely", "probably", "appears to")
