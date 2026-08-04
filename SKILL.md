@@ -361,9 +361,9 @@ If any missing, offer: A) abort, B) save with **INCOMPLETE** warning, C) retry.
 
 **Exclusivity gate:** Any claim using "only", "solely", "exclusively", "the only", or "just" in a scope-limiting context requires a search proving no other instances exist. The search command and result count must be cited inline. If the search returns more results than the claim implies, the claim must be corrected before the report is written.
 
-Example of a failing claim: `"only test.py exposes --workers"` — run `grep -r "workers" src/molecule/command/` and cite the result count. If that returns 3 matches (test.py, check.py, destroy.py), the claim is false and must be rewritten.
+Example of a failing claim: `"only handler.py exposes --verbose"` — run `grep -r "\-\-verbose" src/` and cite the result count. If that returns multiple matches across other files, the claim is false and must be rewritten.
 
-If the exclusivity search was not run, scope the claim to what was actually traced: `"test.py exposes --workers (other commands not verified)"` — not stated as exclusive fact.
+If the exclusivity search was not run, scope the claim to what was actually traced: `"handler.py exposes --verbose (other modules not verified)"` — not stated as exclusive fact.
 
 **Quality checks:**
 - No weasel words ("likely", "probably", "appears to")
