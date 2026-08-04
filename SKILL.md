@@ -202,6 +202,10 @@ Run approved commands. For the user's specific question, trace code paths:
 
 **Shared registration audit:** When a CLI option, decorator, plugin hook, or shared factory function is identified, search for *all* call sites before making claims about which commands or modules use it. For decorator-based registration (e.g., `@common_options`, `@click.option`, `@app.route`), search for the decorator name across the entire relevant directory — not just the file where the feature was first found. Report the full result set. Do not claim which commands expose a feature without having run this search. Applies to: Click option decorators, pluggy hook implementations, factory/registry `.register()` calls, and any pattern where a capability is conferred by applying a shared decorator or registration call.
 
+**Cross-file pattern variable audit:** When a report claims multiple files share an "identical" or "same" pattern, verify that local variable names — not just structure — match across all cited files. If variable names differ, note it explicitly: "Same structure; variable name differs in `<file>` (`<local_name>` vs `<canonical_name>`)." Do not describe a pattern as identical unless both structure and local variable names are the same, or explicitly enumerate the differences.
+
+**Outlier option-set differential:** When identifying commands that deviate from a shared option decorator, do not stop at "this command lacks X." Enumerate exactly which options the outlier does use and which it drops, and note whether the drop appears deliberate (semantic mismatch between the option and the command's purpose). State the diff explicitly: `"<command> uses COMMON_OPTIONS minus <dropped_option> — it handles <concern> itself rather than delegating to the shared mechanism."`
+
 **If code tracing fails or yields no results:**
 
 1. Fall back to manual file inspection (read key files identified in Step 2)
@@ -364,6 +368,16 @@ If any missing, offer: A) abort, B) save with **INCOMPLETE** warning, C) retry.
 Example of a failing claim: `"only handler.py exposes --verbose"` — run `grep -r "\-\-verbose" src/` and cite the result count. If that returns multiple matches across other files, the claim is false and must be rewritten.
 
 If the exclusivity search was not run, scope the claim to what was actually traced: `"handler.py exposes --verbose (other modules not verified)"` — not stated as exclusive fact.
+
+**Directory enumeration (sub-case):** Before asserting which files in a directory share or lack a property ("these are the commands that use X"), enumerate all files in the directory first:
+
+```
+ls src/<module>/*.py
+```
+
+Then grep each for the relevant symbol. Reconcile the full file list against your claim. Do not state a file list as complete without having started from the filesystem. If the directory scan was not run, write: "Commands identified by tracing; exhaustive directory scan not performed — additional commands may exist."
+
+This applies to any claim of the form "the commands that do/don't have X are: [list]."
 
 **Quality checks:**
 - No weasel words ("likely", "probably", "appears to")
