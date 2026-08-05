@@ -129,9 +129,11 @@ Adapt commands to the language detected in Step 1.
 ```
 To trace the code paths related to your question, I'd like to run:
 
-1. grep -rn "def main\|def __init__\|class.*:" --include="*.py" | head -30
-   → Find entry points and core classes
-2. grep -rn "^import\|^from .* import" --include="*.py" | head -50
+1. sg --lang python -p 'def $NAME($$$)' .
+   sg --lang python -p 'class $NAME($$$): $$$' .
+   → Find function and class definitions (fallback: rg "^def |^class " --type py)
+2. sg --lang python -p 'import $MOD' .
+   sg --lang python -p 'from $MOD import $$$' .
    → Map module dependencies
 3. find . -type f -name "*.py" | xargs wc -l | sort -rn | head -20
    → Identify largest/key modules by line count
@@ -139,9 +141,11 @@ To trace the code paths related to your question, I'd like to run:
 
 *JavaScript/Node.js projects:*
 ```
-1. grep -rn "function \|class \|module.exports\|export " --include="*.js" --include="*.ts" | head -30
-   → Find entry points and core classes
-2. grep -rn "require(\|import " --include="*.js" --include="*.ts" | head -50
+1. sg --lang js -p 'function $NAME($$$) { $$$}' .
+   sg --lang ts -p 'class $NAME { $$$}' .
+   → Find function and class definitions (fallback: rg "^function |^class |export " --type js --type ts)
+2. sg --lang js -p 'require($MOD)' .
+   sg --lang ts -p 'import $$$from $MOD' .
    → Map module dependencies
 3. find . -type f \( -name "*.js" -o -name "*.ts" \) | xargs wc -l | sort -rn | head -20
    → Identify largest/key modules by line count
@@ -149,20 +153,23 @@ To trace the code paths related to your question, I'd like to run:
 
 *Go projects:*
 ```
-1. grep -rn "func \|type.*struct\|interface {" --include="*.go" | head -30
-   → Find entry points and core types
-2. grep -rn "^import" --include="*.go" | head -50
-   → Map package dependencies
+1. sg --lang go -p 'func $NAME($$$) $$$' .
+   sg --lang go -p 'type $NAME struct { $$$}' .
+   → Find entry points and core types (fallback: rg "^func |^type " --type go)
+2. sg --lang go -p 'import ($$$)' .
+   → Map package dependencies (fallback: rg "^import" --type go)
 3. find . -type f -name "*.go" | xargs wc -l | sort -rn | head -20
    → Identify largest/key files by line count
 ```
 
 *Rust projects:*
 ```
-1. grep -rn "fn \|struct \|trait \|impl " --include="*.rs" | head -30
-   → Find entry points and core types
-2. grep -rn "^use \|^extern crate" --include="*.rs" | head -50
-   → Map crate dependencies
+1. sg --lang rust -p 'fn $NAME($$$) { $$$}' .
+   sg --lang rust -p 'struct $NAME { $$$}' .
+   sg --lang rust -p 'trait $NAME { $$$}' .
+   → Find entry points and core types (fallback: rg "^fn |^struct |^trait |^impl " --type rust)
+2. sg --lang rust -p 'use $$$' .
+   → Map crate dependencies (fallback: rg "^use |^extern crate" --type rust)
 3. find . -type f -name "*.rs" | xargs wc -l | sort -rn | head -20
    → Identify largest/key modules by line count
 ```
@@ -186,7 +193,9 @@ If user chooses C, note in report: "Analysis based on file reading only (no code
 
 **Source Definition:** "Source" means tool results from this session only — file reads, grep matches, and command output. Framework/language background knowledge is not a source. Claims from background knowledge must be labeled "Note:" in italics. Claims that are neither traceable to a tool result nor explicitly labeled must be omitted.
 
-**Click shared options pattern (Python):** When a Click project uses a shared decorator like `common_options()` or a similar factory that applies multiple options to a command, do not treat any single command file as representative of which commands expose those options. Always search for all applications of the shared decorator before making claims about option availability across commands.
+**Shared registration audit:** When a CLI option, decorator, plugin hook, or shared factory function is identified, search for *all* call sites before making claims about which commands or modules use it. Search for the decorator or factory name across the entire relevant directory — not just the file where the feature was first found. Report the full result set. Do not claim which commands expose a feature without having run this search. Applies to any pattern where a capability is conferred by applying a shared decorator or registration call.
+
+**Comment/annotation attribution:** Claims found in code comments, docstrings, or TODO annotations are developer-stated intent, not verified behavior. Label them: "The author notes in a docstring that..." — not as assertions about runtime behavior.
 
 Run approved commands. For the user's specific question, trace code paths:
 
@@ -200,19 +209,12 @@ Run approved commands. For the user's specific question, trace code paths:
 
 **Apply only to the user's specific question.** Don't do comprehensive analysis of everything — focus the trace on their code understanding goal.
 
-**Shared registration audit:** When a CLI option, decorator, plugin hook, or shared factory function is identified, search for *all* call sites before making claims about which commands or modules use it. For decorator-based registration (e.g., `@common_options`, `@click.option`, `@app.route`), search for the decorator name across the entire relevant directory — not just the file where the feature was first found. Report the full result set. Do not claim which commands expose a feature without having run this search. Applies to: Click option decorators, pluggy hook implementations, factory/registry `.register()` calls, and any pattern where a capability is conferred by applying a shared decorator or registration call.
-
-**Cross-file pattern variable audit:** When a report claims multiple files share an "identical" or "same" pattern, verify that local variable names — not just structure — match across all cited files. If variable names differ, note it explicitly: "Same structure; variable name differs in `<file>` (`<local_name>` vs `<canonical_name>`)." Do not describe a pattern as identical unless both structure and local variable names are the same, or explicitly enumerate the differences.
-
-**Outlier option-set differential:** When identifying commands that deviate from a shared option decorator, do not stop at "this command lacks X." Enumerate exactly which options the outlier does use and which it drops, and note whether the drop appears deliberate (semantic mismatch between the option and the command's purpose). State the diff explicitly: `"<command> uses COMMON_OPTIONS minus <dropped_option> — it handles <concern> itself rather than delegating to the shared mechanism."`
-
 **If code tracing fails or yields no results:**
 
 1. Fall back to manual file inspection (read key files identified in Step 2)
 2. If still unable to trace the path, document in report under **Analysis Limitations**:
    > "Could not trace [specific path] — [reason: pattern not found / code is dynamically generated / insufficient signal in static analysis]. Analysis based on [files inspected]."
 3. Report what was found; don't fill gaps with inference
-4. **Comment/annotation attribution:** Claims found in code comments, docstrings, or TODO annotations are developer-stated intent, not verified behavior. Label them: "The author notes in a docstring that..." — not as assertions about runtime behavior.
 
 Never hallucinate code paths. If evidence is absent, say so.
 
@@ -388,6 +390,8 @@ This applies to any claim of the form "the commands that do/don't have X are: [l
 ## Strict Fidelity Rules
 
 Apply these throughout the interview and the report.
+
+**Search tool policy:** Use `sg` (ast-grep) for all structural searches. Infer `--lang` from file extensions in context. Fall back to `rg`/`grep` only when ast-grep cannot express the pattern; when falling back, state why in the report.
 
 **Zero-Hallucination (factual claims):** Every factual claim — file paths, function names, call directions, dependencies, counts — must trace to a tool result from this session. If information is unavailable or outside your access, write: "Information not found." Do not bridge gaps with inference.
 
