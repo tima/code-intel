@@ -21,7 +21,12 @@ If no `.git/` and no manifest files found, stop with message:
 
 > "I don't see a recognizable code repository here. Navigate to a project root and try again."
 
-If repo found, proceed to Step 1.
+If repo found, check for `sg`:
+- Run: `command -v sg >/dev/null 2>&1 && echo "sg available" || echo "sg not found"`
+- If not found, tell the user: "Note: `sg` (ast-grep) is not installed. Code searches will use `rg`/`grep` instead. Installing `sg` gives syntax-aware structural search — no false positives from strings or comments. See https://ast-grep.github.io/guide/quick-start.html"
+- If found, proceed silently.
+
+Proceed to Step 1.
 
 ---
 
