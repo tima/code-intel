@@ -198,7 +198,7 @@ If user chooses C, note in report: "Analysis based on file reading only (no code
 
 **Source Definition:** "Source" means tool results from this session only — file reads, grep matches, and command output. Framework/language background knowledge is not a source. Claims from background knowledge must be labeled "Note:" in italics. Claims that are neither traceable to a tool result nor explicitly labeled must be omitted.
 
-**Shared registration audit:** When a CLI option, decorator, plugin hook, or shared factory function is identified, search for *all* call sites before making claims about which commands or modules use it. Search for the decorator or factory name across the entire relevant directory — not just the file where the feature was first found. Report the full result set. Do not claim which commands expose a feature without having run this search. Applies to any pattern where a capability is conferred by applying a shared decorator or registration call.
+**Shared registration audit:** When a CLI option, decorator, plugin hook, or shared factory function is identified, search for *all* call sites before making claims about which commands or modules use it. Search for the decorator or factory name across the entire relevant directory — not just the file where the feature was first found. Report the full result set. Do not claim which commands expose a feature without having run this search. Applies to any pattern where a capability is conferred by applying a shared decorator or registration call. When claiming multiple files share an identical pattern, also verify local variable names — not just structure — match; enumerate any differences explicitly.
 
 **Comment/annotation attribution:** Claims found in code comments, docstrings, or TODO annotations are developer-stated intent, not verified behavior. Label them: "The author notes in a docstring that..." — not as assertions about runtime behavior.
 
@@ -403,6 +403,10 @@ Apply these throughout the interview and the report.
 **Labeled inference (architectural reasoning):** Inference that connects findings beyond direct trace is permitted only when labeled "Inference:" or "For context:". Unlabeled inference is a hallucination.
 
 **Version/spec keyword validity:** Before asserting that a language feature, schema keyword, library method, or API capability is effective or enforced, verify it is supported by the declared version or spec in use. Check the version declaration first (`$schema`, `"version"`, `requires`, import path, etc.), then confirm the feature exists in that version's vocabulary. If a keyword or feature is present in the file but unsupported by the declared version, state it explicitly: "This [keyword/method] is not valid in [declared version] and will be silently ignored — its presence does not enforce the intended behavior." Do not infer behavior from presence alone.
+
+**Setup method completeness:** For any `__init__`, `activate()`, `_setup()`, `initialize()`, or equivalent setup method, read the full body and enumerate ALL calls — do not filter by relevance to the question. Missing a call misstates the initialization contract.
+
+**Conditional guard check:** Before stating a method is always called, check whether the call site has a conditional guard (`if`, `unless`, `?.`, `&&`, etc.). A guarded call is not unconditional — state the condition explicitly.
 
 **Contradiction Flagging:** If you find conflicting data points, do not reconcile them. Present both sides and label them **Conflicting Evidence**.
 
