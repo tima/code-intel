@@ -74,6 +74,7 @@ See [example Django integration analysis](examples/example-django-integration.md
 ## Requirements
 
 - Git repository or recognizable project structure (package.json, requirements.txt, go.mod, Cargo.toml, etc.)
+- [`sg` (ast-grep)](https://ast-grep.github.io/guide/quick-start.html) — recommended for structural code search; falls back to `rg`/`grep` if not installed
 
 ## Documentation
 
