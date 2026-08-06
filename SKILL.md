@@ -198,7 +198,7 @@ If user chooses C, note in report: "Analysis based on file reading only (no code
 
 **Source Definition:** "Source" means tool results from this session only — file reads, grep matches, and command output. Framework/language background knowledge is not a source. Claims from background knowledge must be labeled "Note:" in italics. Claims that are neither traceable to a tool result nor explicitly labeled must be omitted.
 
-**Shared registration audit:** When a CLI option, decorator, plugin hook, or shared factory function is identified, search for *all* call sites before making claims about which commands or modules use it. Search for the decorator or factory name across the entire relevant directory — not just the file where the feature was first found. Report the full result set. Do not claim which commands expose a feature without having run this search. Applies to any pattern where a capability is conferred by applying a shared decorator or registration call. When claiming multiple files share an identical pattern, also verify local variable names — not just structure — match; enumerate any differences explicitly.
+**Shared registration audit** (falsification search): When a CLI option, decorator, plugin hook, or shared factory function is identified, search for *all* call sites across the entire relevant directory before making claims about which commands or modules use it. Applies to any pattern where a capability is conferred by a shared decorator or registration call. When claiming multiple files share an identical pattern, also verify local variable names — not just structure — match; enumerate any differences explicitly.
 
 **Comment/annotation attribution:** Claims found in code comments, docstrings, or TODO annotations are developer-stated intent, not verified behavior. Label them: "The author notes in a docstring that..." — not as assertions about runtime behavior.
 
@@ -312,13 +312,12 @@ Example: "Clean separation between data models and request handlers" | "Request 
 Claude Code | [Model: e.g. "Haiku 4.5" or "Sonnet 4.6"] | [Timestamp from Step 6]
 ```
 
-**Extension guidance audit:** Before writing any "minimum diff", "files to touch", or "N-line change" guidance:
+**Extension guidance audit** (falsification search): Before writing any "minimum diff", "files to touch", or "N-line change" guidance:
 
 1. For each file named: verify it contains the relevant symbol (read the file or grep for the symbol).
-2. For each symbol to be added or modified: grep for all other files that import or reference that symbol, and determine whether they also need changes.
-3. State the search used and the result count.
+2. For each symbol to add or modify: grep for all other files that import or reference it.
 
-If the exhaustive search was not run, write: `"Files identified by tracing; exhaustive search not performed — verify no additional call sites exist before implementing."` Do not state a specific file count ("touch 3 files", "minimum 2-line diff") without having verified completeness.
+If the search was not run, write: `"Files identified by tracing; exhaustive search not performed — verify no additional call sites exist before implementing."` Do not state a specific file count without having verified completeness.
 
 **Verify Before Writing Report** — run this silently before writing any section. No output to user.
 
@@ -366,19 +365,9 @@ Required sections: Executive Summary, Code Architecture, Answer to Question, Ext
 
 If any missing, offer: A) abort, B) save with **INCOMPLETE** warning, C) retry.
 
-**Exclusivity gate:** Any claim using "only", "solely", "exclusively", "the only", or "just" in a scope-limiting context requires a search proving no other instances exist. The search command and result count must be cited inline. If the search returns more results than the claim implies, the claim must be corrected before the report is written.
+**Exclusivity gate** (falsification search): Any claim using "only", "solely", "exclusively", "the only", or "just" in a scope-limiting context. Example: `"only handler.py exposes --verbose"` — run `grep -r "\-\-verbose" src/` and cite the count. If that returns multiple matches, the claim is false and must be rewritten. If the search was not run: `"handler.py exposes --verbose (other modules not verified)"`.
 
-Example of a failing claim: `"only handler.py exposes --verbose"` — run `grep -r "\-\-verbose" src/` and cite the result count. If that returns multiple matches across other files, the claim is false and must be rewritten.
-
-If the exclusivity search was not run, scope the claim to what was actually traced: `"handler.py exposes --verbose (other modules not verified)"` — not stated as exclusive fact.
-
-**Directory enumeration (sub-case):** Before asserting which files in a directory share or lack a property ("these are the commands that use X"), enumerate all files in the directory first:
-
-```
-ls src/<module>/*.py
-```
-
-Then grep each for the relevant symbol. Reconcile the full file list against your claim. Do not state a file list as complete without having started from the filesystem. If the directory scan was not run, write: "Commands identified by tracing; exhaustive directory scan not performed — additional commands may exist."
+**Directory enumeration** (falsification search): Before asserting which files in a directory share or lack a property, enumerate all files first: `ls src/<module>/*.py`, then grep each for the relevant symbol. If the scan was not run, write: "Commands identified by tracing; exhaustive directory scan not performed — additional commands may exist."
 
 **Quality checks:**
 - No weasel words ("likely", "probably", "appears to")
@@ -393,6 +382,8 @@ Apply these throughout the interview and the report.
 **Search tool policy:** Use `sg` (ast-grep) for all structural searches. Infer `--lang` from file extensions in context. Fall back to `rg`/`grep` only when ast-grep cannot express the pattern; when falling back, state why in the report.
 
 **Zero-Hallucination (factual claims):** Every factual claim — file paths, function names, call directions, dependencies, counts — must trace to a tool result from this session. If information is unavailable or outside your access, write: "Information not found." Do not bridge gaps with inference.
+
+**Falsification:** Before any completeness or exclusivity claim, run a search that would disprove it. Cite the search command and result count inline. If the search was not run, scope the claim to what was actually traced — not stated as established fact.
 
 **Labeled inference (architectural reasoning):** Inference that connects findings beyond direct trace is permitted only when labeled "Inference:" or "For context:". Unlabeled inference is a hallucination.
 
