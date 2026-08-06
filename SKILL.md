@@ -32,54 +32,29 @@ Proceed to Step 1.
 
 ### Step 1: Identify Repository Language & Type
 
-Read any README file (`README.md`, `README`, `README.rst`) to understand project purpose. Check manifest files to determine primary language and framework.
+Read README file (`README.md`, `README`, `README.rst`) if present. Check manifest files to determine primary language and framework.
+
+**Completion criterion:** Done when you can name the language and one framework/platform (e.g., "Python FastAPI" or "Go Cobra CLI").
 
 ---
 
 ### Step 2: Passive Code Structure Scan
 
-Use file reading and pattern matching only. Do NOT run shell commands at this stage.
+Use file reading and manifest inspection only. Do NOT run shell commands at this stage.
 
-**Identify entry points (where code starts):**
+**Find these four things (no more than a quick scan per category):**
 
-Adapt to detected language from Step 1:
+**1. Entry point:** Which file starts execution? (Look for `main`, `app`, `__main__`, manifest entry points. Name 1–2 files.)
 
-*Python:* `if __name__ == "__main__"`, files named `main.py`/`app.py`/`server.py`; `entry_points`/`console_scripts` in `setup.py`; `[project.scripts]` in `pyproject.toml`
+**2. Core abstractions:** What are the 2–3 central classes, interfaces, or modules? (Check `base.py`, interfaces, trait definitions, or top-level directories. Name them and their role in 1 sentence each.)
 
-*JavaScript/Node.js:* `index.js` or file referenced in `package.json:"main"`; `"scripts":"start"` in `package.json`; top-level `app.listen()`/`server.listen()`
+**3. Extension mechanism:** How does user code hook in? (Check for decorators, callbacks, config, plugin systems. Name one pattern.)
 
-*Go:* `func main()` in any `package main` file; `cmd/` directory containing main packages; check `go.mod` for module name
+**4. Public vs internal:** What's exported? (Check `__all__`, manifest exports, or public directory structure. State in 1 sentence.)
 
-*Rust:* `fn main()` in `src/main.rs`; `[[bin]]` entries in `Cargo.toml`
+**Completion criterion:** Done when you can answer all four in 1-2 sentences each. Do not read full files.
 
-*Ruby:* `bin/` directory; files requiring `./config/application` (Rails); `Rakefile` entry tasks
-
-*Java/Kotlin:* Classes with `public static void main`; Spring `@SpringBootApplication`; `pom.xml`/`build.gradle` mainClass config
-
-1. Find entry point file(s) using patterns above
-2. Check `package.json` for `"main"`, `"bin"`, or `"scripts"` fields (all JS/Node projects)
-3. Check manifest for CLI entry points
-
-**Identify core abstractions:**
-4. Search for abstract base classes or interfaces (Python: `base.py`, `abstract.py`; TypeScript: `interface.ts`; Go: interfaces in `*.go`; Rust: traits; Java: `Abstract*.java`, `*Interface.java`)
-5. Scan for key class definitions and their inheritance hierarchy
-6. Identify major modules and their responsibility
-
-**Identify extension/integration points:**
-7. Look for patterns: decorators, hooks/callbacks, middleware, factory methods, plugin systems
-8. Check for configuration-driven behavior (`__init__` parameters, config files, env var reading)
-9. Scan for callback registration (`.on()`, `.register()`, `.subscribe()`, event listeners)
-
-**Identify public APIs:**
-10. Check which functions/classes are exported (top-level in main files, `__all__` in Python, `export` statements)
-11. Identify main interfaces users would interact with
-
-**From this scan, document:**
-- Entry point(s) and startup sequence
-- Core abstractions and how they relate
-- Extension mechanisms (how users hook in)
-- Configuration options and where they're read
-- What's public vs internal
+**Completion criterion:** Stop when you can describe in 1-2 sentences each: (1) entry point(s), (2) 2-3 core abstractions and how they relate, (3) one extension mechanism, (4) what's public vs internal. Do not read full files; sketch from manifest and file structure only.
 
 ---
 
@@ -105,17 +80,17 @@ Keep asking clarifying questions until the user's question is specific enough th
 
 **Stop asking when the question meets all three criteria:**
 1. Identifies a specific code path, feature, or integration point
-2. Is answerable by reading code and tracing execution
-3. Can be demonstrated with exact file/function names in the answer
+2. Names searchable concepts — keywords, patterns, or file paths that static analysis can find in the code (e.g., "payment", "auth", "webhook retry")
+3. Is answerable within the codebase — the named concepts appear in code or configuration
 
 *Specific enough:*
-- "How does the payment processing flow work from API call to database write?"
-- "Where would we hook in custom authentication middleware?"
-- "What happens when a webhook delivery fails and where is the retry logic?"
+- "How does the payment processing flow work from API call to database write?" — searchable: payment, database write
+- "Where would we hook in custom authentication middleware?" — searchable: middleware, auth patterns
+- "What happens when a webhook delivery fails and where is the retry logic?" — searchable: webhook, retry
 
 *Too vague (ask again):*
-- "How does this work?" — which part?
-- "Help me understand the codebase" — no specific target
+- "How does this work?" — which part? What keywords to search for?
+- "Help me understand the codebase" — no specific target or searchable concept
 - "Is this any good?" — evaluating health, not understanding code
 
 **Proceed to Step 4** when the question is specific enough to trace.
@@ -200,7 +175,7 @@ If user chooses C, note in report: "Analysis based on file reading only (no code
 
 **Shared registration audit** (falsification search): When a CLI option, decorator, plugin hook, or shared factory function is identified, search for *all* call sites across the entire relevant directory before making claims about which commands or modules use it. Applies to any pattern where a capability is conferred by a shared decorator or registration call. When claiming multiple files share an identical pattern, also verify local variable names — not just structure — match; enumerate any differences explicitly.
 
-**Comment/annotation attribution:** Claims found in code comments, docstrings, or TODO annotations are developer-stated intent, not verified behavior. Label them: "The author notes in a docstring that..." — not as assertions about runtime behavior.
+**See Falsification in Strict Fidelity Rules** for the shared principle these rules enforce.
 
 Run approved commands. For the user's specific question, trace code paths:
 
@@ -301,6 +276,8 @@ Example format for "how would we add authentication":
 
 ## Strengths & Weaknesses
 
+**See Critical Assessment in Strict Fidelity Rules — evaluate evidence-only, skeptical lens.**
+
 | Strengths | Weaknesses |
 |-----------|-----------|
 | [2+ code-specific strengths with evidence] | [2+ code-specific weaknesses with evidence] |
@@ -336,6 +313,8 @@ Determine analysis scope: if more than 20 files were read or more than 10 grep r
 3. **Fabricated sequence (zero-tolerance):** "calls", "which causes", "this triggers", "leading to", and equivalents are prohibited without a traced call chain in tool results. If the sequence cannot be traced, describe what was found and drop the causal assertion.
 
 4. **Enumerated list completeness:** If grep returned N results, report N. "Several", "multiple", "a few", "various" are prohibited when the actual count is known from tool results.
+
+**Note on comment attribution:** Claims found in code comments, docstrings, or TODO annotations are developer-stated intent, not verified behavior. Verify each is labeled as such — e.g. "The author notes in a docstring that..." — not asserted as verified behavior.
 
 5. **Quantitative fabrication:** One call site found → "one call site." Do not generalize single data points to ranges or vague plurals.
 
