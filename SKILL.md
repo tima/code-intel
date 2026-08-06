@@ -321,7 +321,7 @@ If the search was not run, write: `"Files identified by tracing; exhaustive sear
 
 **Verify Before Writing Report** — run this silently before writing any section. No output to user.
 
-Determine analysis scope: if many files were read or many grep result sets were processed, use spot-check mode (marked below); otherwise run full verification.
+Determine analysis scope: if more than 20 files were read or more than 10 grep result sets were processed, use spot-check mode (marked below); otherwise run full verification.
 
 **Full verification:**
 
@@ -352,7 +352,7 @@ Determine analysis scope: if many files were read or many grep result sets were 
    - Code Architecture vs. Answer to Your Question
    - Strengths/Weaknesses vs. Code Architecture
 
-**Spot-check mode** (large analysis scope — many files read or many grep result sets):
+**Spot-check mode** (large analysis scope — >20 files read or >10 grep result sets):
 - Run checks 1, 3, 4, and 5 on Extension/Integration Points and Answer to Your Question only
 - Run check 8 on Executive Summary vs. Answer only
 - Check 6: verify named specifics in Code Architecture only (skip full traceability gate)
