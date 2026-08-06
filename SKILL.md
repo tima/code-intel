@@ -221,8 +221,6 @@ Run approved commands. For the user's specific question, trace code paths:
    > "Could not trace [specific path] — [reason: pattern not found / code is dynamically generated / insufficient signal in static analysis]. Analysis based on [files inspected]."
 3. Report what was found; don't fill gaps with inference
 
-Never hallucinate code paths. If evidence is absent, say so.
-
 ---
 
 ### Step 6: Get Timestamp
@@ -355,8 +353,6 @@ Determine analysis scope: if many files were read or many grep result sets were 
    - Code Architecture vs. Answer to Your Question
    - Strengths/Weaknesses vs. Code Architecture
 
-9. **Labeled inference:** Architectural reasoning that connects findings beyond direct trace must be labeled "Inference:" or "For context:". Verify no unlabeled inference exists.
-
 **Spot-check mode** (large analysis scope — many files read or many grep result sets):
 - Run checks 1, 3, 4, and 5 on Extension/Integration Points and Answer to Your Question only
 - Run check 8 on Executive Summary vs. Answer only
@@ -383,8 +379,6 @@ ls src/<module>/*.py
 ```
 
 Then grep each for the relevant symbol. Reconcile the full file list against your claim. Do not state a file list as complete without having started from the filesystem. If the directory scan was not run, write: "Commands identified by tracing; exhaustive directory scan not performed — additional commands may exist."
-
-This applies to any claim of the form "the commands that do/don't have X are: [list]."
 
 **Quality checks:**
 - No weasel words ("likely", "probably", "appears to")
